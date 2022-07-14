@@ -1,5 +1,5 @@
 {
-  "name": "greeter",
+  "name": "hotel-booking-dapp",
   "version": "1.0.0",
   "license": "(MIT AND Apache-2.0)",
   "scripts": {
@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "near-api-js": "~0.44.2",
-     
+
     "react": "~18.1.0",
     "react-dom": "~18.1.0",
     "regenerator-runtime": "~0.13.9"

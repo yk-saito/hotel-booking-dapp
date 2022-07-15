@@ -1,72 +1,62 @@
-/*
- * Example smart contract written in RUST
- *
- * Learn more about writing NEAR smart contracts with Rust:
- * https://near-docs.io/develop/Contract
- *
- */
-
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::{log, near_bindgen};
+use near_sdk::collections::UnorderedMap;
+use near_sdk::near_bindgen;
 
-// Define the default message
-const DEFAULT_MESSAGE: &str = "Hello";
-
-// Define the contract structure
 #[near_bindgen]
 #[derive(BorshDeserialize, BorshSerialize)]
-pub struct Contract {
-    message: String,
+pub struct Rooms {
+    pub rooms: UnorderedMap<String, String>,
 }
 
-// Define the default, which automatically initializes the contract
-impl Default for Contract{
-    fn default() -> Self{
-        Self{message: DEFAULT_MESSAGE.to_string()}
+impl Default for Rooms {
+    fn default() -> Self {
+        Self {
+            rooms: UnorderedMap::new(b"r".to_vec()),
+        }
     }
 }
 
-// Implement the contract structure
 #[near_bindgen]
-impl Contract {
-    // Public method - returns the greeting saved, defaulting to DEFAULT_MESSAGE
-    pub fn get_greeting(&self) -> String {
-        return self.message.clone();
+impl Rooms {
+    pub fn set_room(&mut self, id: String, name: String) {
+        self.rooms.insert(&id, &name);
     }
 
-    // Public method - accepts a greeting, such as "howdy", and records it
-    pub fn set_greeting(&mut self, message: String) {
-        // Use env::log to record logs permanently to the blockchain!
-        log!("Saving greeting {}", message);
-        self.message = message;
+    pub fn get_room(&self, id: String) -> Option<String> {
+        self.rooms.get(&id)
     }
 }
 
-/*
- * The rest of this file holds the inline tests for the code above
- * Learn more about Rust tests: https://doc.rust-lang.org/book/ch11-01-writing-tests.html
- */
 #[cfg(test)]
 mod tests {
     use super::*;
+    use near_sdk::test_utils::{accounts, VMContextBuilder};
+    use near_sdk::{testing_env, AccountId};
 
-    #[test]
-    fn get_default_greeting() {
-        let contract = Contract::default();
-        // this test did not call set_greeting so should return the default "Hello" greeting
-        assert_eq!(
-            contract.get_greeting(),
-            "Hello".to_string()
-        );
+    // Allows for modifying the environment of the mocked blockchain
+    fn get_context(predecessor_account_id: AccountId, is_view: bool) -> VMContextBuilder {
+        let mut builder = VMContextBuilder::new();
+        builder
+            .current_account_id(accounts(0))
+            .signer_account_id(predecessor_account_id.clone())
+            .predecessor_account_id(predecessor_account_id)
+            .is_view(is_view);
+        builder
     }
 
     #[test]
-    fn set_then_get_greeting() {
-        let mut contract = Contract::default();
-        contract.set_greeting("howdy".to_string());
-        assert_eq!(
-            contract.get_greeting(),
-            "howdy".to_string()
-        );
+    fn set_get_room() {
+        let mut context = get_context(accounts(1), false);
+        // Initialize the mocked blockchain
+        testing_env!(context.build());
+
+        // Set the testing environment for the subsequent calls
+        testing_env!(context.predecessor_account_id(accounts(1)).build());
+
+        let mut contract = Rooms::default();
+        contract.set_room("0".to_string(), "first_room".to_string());
+
+        let room_name = contract.get_room("0".to_string());
+        assert_eq!(room_name.expect("Don't set room"), "first_room");
     }
 }

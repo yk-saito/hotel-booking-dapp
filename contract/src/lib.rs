@@ -97,8 +97,8 @@ mod tests {
     fn get_context(is_view: bool) -> VMContextBuilder {
         let mut builder = VMContextBuilder::new();
         builder
-            .account_balance(10)
-            .attached_deposit(10)
+            .account_balance(0)
+            .attached_deposit(0)
             .current_account_id(accounts(0))
             .predecessor_account_id(accounts(0))
             .signer_account_id(accounts(1))
@@ -166,7 +166,7 @@ mod tests {
 
     #[test]
     fn empty_get_rooms() {
-        let mut context = get_context(false);
+        let mut context = get_context(true);
         testing_env!(context.build());
         testing_env!(context.predecessor_account_id(accounts(0)).build());
         let contract = Rooms::default();
@@ -174,34 +174,38 @@ mod tests {
         assert_eq!(rooms.len(), 0);
     }
 
-    // #[test]
-    // fn booking_room() {
-    //     let mut context = get_context(true);
-    //     testing_env!(context.build());
-    //     testing_env!(context.predecessor_account_id(accounts(0)).build());
+    #[test]
+    fn booking_room() {
+        let mut context = get_context(false);
 
-    //     let mut contract = Rooms::default();
-    //     contract.set_room(
-    //         "0".to_string(),
-    //         "JAPAN_room".to_string(),
-    //         "test.img".to_string(),
-    //         "This is JAPAN room".to_string(),
-    //         "Japan".to_string(),
-    //         near_to_yocto(1),
-    //     );
-    //     contract.set_room(
-    //         "1".to_string(),
-    //         "USA_room".to_string(),
-    //         "test2.img".to_string(),
-    //         "This is USA room".to_string(),
-    //         "USA".to_string(),
-    //         near_to_yocto(1),
-    //     );
+        context.account_balance(near_to_yocto(2).into());
+        context.attached_deposit(near_to_yocto(1).into());
 
-    //     let booking_room = contract.booking_room("0".to_string());
-    //     assert_eq!(booking_room.name, "JAPAN_room");
+        testing_env!(context.build());
+        testing_env!(context.predecessor_account_id(accounts(0)).build());
 
-    //     let rooms = contract.get_rooms();
-    //     assert_eq!(rooms.len(), 1);
-    // }
+        let mut contract = Rooms::default();
+        contract.set_room(
+            "0".to_string(),
+            "JAPAN_room".to_string(),
+            "test.img".to_string(),
+            "This is JAPAN room".to_string(),
+            "Japan".to_string(),
+            near_to_yocto(1),
+        );
+        contract.set_room(
+            "1".to_string(),
+            "USA_room".to_string(),
+            "test2.img".to_string(),
+            "This is USA room".to_string(),
+            "USA".to_string(),
+            near_to_yocto(1),
+        );
+
+        let booking_room = contract.booking_room("0".to_string());
+        assert_eq!(booking_room.name, "JAPAN_room");
+
+        let rooms = contract.get_rooms();
+        assert_eq!(rooms.len(), 1);
+    }
 }

@@ -22,7 +22,7 @@ const Rooms = () => {
     try {
       // TODO: add Notification
       createRoom(data).then((resp) => {
-        console.log("Success!: ", room);
+        console.log("Success!: ", data);
         // get_rooms();
       });
     } catch (error) {

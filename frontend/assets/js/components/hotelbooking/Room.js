@@ -3,13 +3,12 @@ import PropTypes from "prop-types";
 import { utils } from "near-api-js";
 import { Card, Button, Col, Badge, Stack } from "react-bootstrap";
 
-const Room = ({ room, buy }) => {
-  const { room_id, price, name, description, sold, location, image, owner } =
-    room;
+const Room = ({ room, booking }) => {
+  const { room_id, price, name, description, location, image, owner } = room;
 
-  // const triggeBuy = () => {
-  //   buy(room_id, price); // add owner
-  // }
+  const triggerBooking = () => {
+    booking(room_id, price); // add owner
+  };
 
   return (
     <Col>
@@ -23,8 +22,9 @@ const Room = ({ room, buy }) => {
           <Card.Title>{name}</Card.Title>
           <Card.Text>{description}</Card.Text>
           <Card.Text>{location}</Card.Text>
-          {/* <Button></Button> */}
-          <Card.Text>{price}</Card.Text>
+          <Button variant='outline-dark' onClick={triggerBooking}>
+            Book for {utils.format.formatNearAmount(price)} NEAR
+          </Button>
         </Card.Body>
       </Card>
     </Col>
@@ -33,7 +33,7 @@ const Room = ({ room, buy }) => {
 
 Room.PrpoTypes = {
   room: PropTypes.instanceOf(Object).isRequired,
-  // TODO: buy
+  booking: PropTypes.func.isRequired,
 };
 
 export default Room;

@@ -5,6 +5,8 @@ import {
 } from "near-api-js/lib/utils/format";
 import getConfig from "./config";
 
+const GAS = 100000000000000;
+
 const nearConfig = getConfig(process.env.NODE_ENV || "development");
 //...
 
@@ -59,6 +61,11 @@ export async function getAccountId() {
   return window.walletConnection.getAccountId();
 }
 
+export async function get_rooms() {
+  let rooms = await window.contract.get_rooms();
+  return rooms;
+}
+
 export function createRoom(room /*name, image, description, location, price*/) {
   console.log(room);
   const timestamp = Date.now().toString();
@@ -74,7 +81,6 @@ export function createRoom(room /*name, image, description, location, price*/) {
   });
 }
 
-export async function get_rooms() {
-  let rooms = await window.contract.get_rooms();
-  return rooms;
+export async function booking_room({ room_id, price }) {
+  await window.contract.booking_room({ room_id: room_id }, GAS, price);
 }

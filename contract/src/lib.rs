@@ -1,12 +1,13 @@
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::collections::UnorderedMap;
+use near_sdk::json_types::U128;
 use near_sdk::serde::{Deserialize, Serialize};
-use near_sdk::{env, json_types::U128, near_bindgen, AccountId, Promise};
+use near_sdk::{collections::UnorderedMap, env, near_bindgen, AccountId, Promise};
 
 #[near_bindgen]
 #[derive(Serialize, Deserialize, Debug, BorshDeserialize, BorshSerialize)]
 #[serde(crate = "near_sdk::serde")]
 pub struct Room {
+    room_id: String,
     name: String,
     image: String,
     description: String,
@@ -33,21 +34,22 @@ impl Default for Rooms {
 impl Rooms {
     pub fn set_room(
         &mut self,
-        id: String,
+        timestamp: String,
         name: String,
         image: String,
         description: String,
         location: String,
         price: U128,
-    ) {
-        // Error if already registered
-        assert!(self.rooms.get(&id).is_none(), "Already exists");
+    ) -> String {
+        // TODO: timestampとowner_idでチェックする？
+        assert!(self.rooms.get(&timestamp).is_none(), "Already exists");
 
         let account_id = env::signer_account_id();
 
         self.rooms.insert(
-            &id,
+            &timestamp.clone(),
             &Room {
+                room_id: timestamp.clone(),
                 name,
                 image,
                 description,
@@ -56,6 +58,7 @@ impl Rooms {
                 owner: account_id,
             },
         );
+        timestamp
     }
 
     pub fn get_room(&self, id: String) -> Room {
@@ -116,7 +119,7 @@ mod tests {
         testing_env!(context.predecessor_account_id(accounts(0)).build());
 
         let mut contract = Rooms::default();
-        contract.set_room(
+        let room_id = contract.set_room(
             "0".to_string(),
             "JAPAN_room".to_string(),
             "test.img".to_string(),
@@ -125,7 +128,7 @@ mod tests {
             near_to_yocto(10),
         );
 
-        let room = contract.get_room("0".to_string());
+        let room = contract.get_room(room_id);
         assert_eq!(room.name, "JAPAN_room",);
     }
 
@@ -136,7 +139,7 @@ mod tests {
         testing_env!(context.predecessor_account_id(accounts(0)).build());
 
         let mut contract = Rooms::default();
-        contract.set_room(
+        let room_id_1 = contract.set_room(
             "0".to_string(),
             "JAPAN_room".to_string(),
             "test.img".to_string(),
@@ -144,7 +147,7 @@ mod tests {
             "Japan".to_string(),
             near_to_yocto(10),
         );
-        contract.set_room(
+        let room_id_2 = contract.set_room(
             "1".to_string(),
             "USA_room".to_string(),
             "test2.img".to_string(),
@@ -153,15 +156,11 @@ mod tests {
             near_to_yocto(10),
         );
 
-        let rooms = contract.get_rooms();
-        let japan_room = rooms.get(0);
-        // Convert Option<Room> to Room
-        let room_name = japan_room.map(|room| &room.name);
-        assert_eq!(room_name.expect("Don't set room"), "JAPAN_room",);
+        let room_1 = contract.get_room(room_id_1);
+        assert_eq!(room_1.name, "JAPAN_room",);
 
-        let usa_room = rooms.get(1);
-        let room_name = usa_room.map(|room| &room.name);
-        assert_eq!(room_name.expect("Don't set room"), "USA_room",);
+        let room_2 = contract.get_room(room_id_2);
+        assert_eq!(room_2.name, "USA_room",);
     }
 
     #[test]
@@ -185,7 +184,7 @@ mod tests {
         testing_env!(context.predecessor_account_id(accounts(0)).build());
 
         let mut contract = Rooms::default();
-        contract.set_room(
+        let room_id_1 = contract.set_room(
             "0".to_string(),
             "JAPAN_room".to_string(),
             "test.img".to_string(),
@@ -193,7 +192,7 @@ mod tests {
             "Japan".to_string(),
             near_to_yocto(1),
         );
-        contract.set_room(
+        let _ = contract.set_room(
             "1".to_string(),
             "USA_room".to_string(),
             "test2.img".to_string(),
@@ -201,10 +200,14 @@ mod tests {
             "USA".to_string(),
             near_to_yocto(1),
         );
+        // Check set 2 rooms
+        let rooms = contract.get_rooms();
+        assert_eq!(rooms.len(), 2);
 
-        let booking_room = contract.booking_room("0".to_string());
-        assert_eq!(booking_room.name, "JAPAN_room");
+        let booking_room_1 = contract.booking_room(room_id_1);
+        assert_eq!(booking_room_1.name, "JAPAN_room");
 
+        // Check delete 1 room
         let rooms = contract.get_rooms();
         assert_eq!(rooms.len(), 1);
     }

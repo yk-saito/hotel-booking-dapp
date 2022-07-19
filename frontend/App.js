@@ -2,6 +2,7 @@ import "regenerator-runtime/runtime";
 import React, { useEffect, useCallback, useState } from "react";
 import { Button, Container, Nav } from "react-bootstrap";
 import Wallet from "./assets/js/components/Wallet";
+import Rooms from "./assets/js/components/hotelbooking/Rooms";
 // import "./assets/css/global.css";
 
 import {
@@ -31,7 +32,7 @@ const App = function useAppWrapper() {
 
   useEffect(
     () => {
-      fetchRooms();
+      // fetchRooms();
       getBalance();
     },
 
@@ -65,7 +66,7 @@ const App = function useAppWrapper() {
   }
 
   /* When connected to Wallet */
-  rooms.forEach((room) => console.log(room));
+  // rooms.forEach((room) => console.log(room));
   return (
     <>
       <Container fuild='md'>
@@ -79,6 +80,9 @@ const App = function useAppWrapper() {
             />
           </Nav.Item>
         </Nav>
+        <main>
+          <Rooms />
+        </main>
       </Container>
     </>
   );

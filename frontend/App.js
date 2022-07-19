@@ -18,12 +18,6 @@ const App = function useAppWrapper() {
   const account = window.walletConnection.account();
   const [balance, setBalance] = useState("0");
 
-  const fetchRooms = useCallback(async () => {
-    if (window.walletConnection.isSignedIn) {
-      setRooms(await get_rooms());
-    }
-  });
-
   const getBalance = useCallback(async () => {
     if (account.accountId) {
       setBalance(await accountBalance());
@@ -32,7 +26,6 @@ const App = function useAppWrapper() {
 
   useEffect(
     () => {
-      // fetchRooms();
       getBalance();
     },
 

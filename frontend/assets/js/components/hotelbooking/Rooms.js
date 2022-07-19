@@ -1,20 +1,24 @@
 import React, { useEffect, useState, useCallback } from "react";
 // import { toast } from "react-toastify";
 import AddRoom from "./AddRoom";
-// import Room from "./Room";
+import Room from "./Room";
 // import Loader from "../utils/Loader";
 import { Row } from "react-bootstrap";
 // import { NotificationSuccess, NotificationError } from "../utils/Notifications";
-import {
-  // get_rooms as getRoomList,
-  createRoom,
-  // get_rooms,
-} from "../../near/utils";
+import { get_rooms as getRoomList, createRoom } from "../../near/utils";
 //...
 
 const Rooms = () => {
+  const [rooms, setRooms] = useState([]);
+
   //...
-  // TODO: const get_rooms = ...
+  const getRooms = useCallback(async () => {
+    try {
+      setRooms(await getRoomList());
+    } catch (error) {
+      console.log({ error });
+    }
+  });
   //...
 
   //...
@@ -23,7 +27,7 @@ const Rooms = () => {
       // TODO: add Notification
       createRoom(data).then((resp) => {
         console.log("Success!: ", data);
-        // get_rooms();
+        getRooms();
       });
     } catch (error) {
       console.log({ error });
@@ -36,7 +40,7 @@ const Rooms = () => {
   //...
 
   useEffect(() => {
-    // get_rooms();
+    getRooms();
   }, []);
   return (
     <>
@@ -44,7 +48,11 @@ const Rooms = () => {
         <h1 className='fs-4 fw-bold mb-0'>Hotel Booking</h1>
         <AddRoom save={addRoom} />
       </div>
-      <Row xs={1} sm={2} lg={3} className='g-3  mb-5 g-xl-4 g-xxl-5'></Row>
+      <Row xs={1} sm={2} lg={3} className='g-3  mb-5 g-xl-4 g-xxl-5'>
+        {rooms.map((_room) => (
+          <Room room={{ ..._room }} />
+        ))}
+      </Row>
     </>
   );
 };

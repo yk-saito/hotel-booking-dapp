@@ -73,7 +73,7 @@ impl Rooms {
         return booking Room
     */
     #[payable]
-    pub fn booking_room(&mut self, room_id: String) -> Room {
+    pub fn book_room(&mut self, room_id: String) -> Room {
         let room = self.get_room(room_id.clone());
         // TODO: 商品がないときのエラー処理
 
@@ -174,7 +174,7 @@ mod tests {
     }
 
     #[test]
-    fn booking_room() {
+    fn book_room() {
         let mut context = get_context(false);
 
         context.account_balance(near_to_yocto(2).into());
@@ -204,8 +204,8 @@ mod tests {
         let rooms = contract.get_rooms();
         assert_eq!(rooms.len(), 2);
 
-        let booking_room_1 = contract.booking_room(room_id_1);
-        assert_eq!(booking_room_1.name, "JAPAN_room");
+        let book_room_1 = contract.book_room(room_id_1);
+        assert_eq!(book_room_1.name, "JAPAN_room");
 
         // Check delete 1 room
         let rooms = contract.get_rooms();

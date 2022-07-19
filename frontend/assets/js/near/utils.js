@@ -34,7 +34,7 @@ export async function initContract() {
     nearConfig.contractName,
     {
       viewMethods: ["get_room", "get_rooms"],
-      changeMethods: ["booking_room", "set_room"],
+      changeMethods: ["book_room", "set_room"],
     }
   );
 }
@@ -81,6 +81,6 @@ export function createRoom(room /*name, image, description, location, price*/) {
   });
 }
 
-export async function booking_room({ room_id, price }) {
-  await window.contract.booking_room({ room_id: room_id }, GAS, price);
+export async function book_room({ room_id, price }) {
+  await window.contract.book_room({ room_id: room_id }, GAS, price);
 }

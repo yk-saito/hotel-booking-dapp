@@ -8,7 +8,7 @@ import { Row } from "react-bootstrap";
 import {
   get_rooms as getRoomList,
   createRoom,
-  booking_room,
+  book_room,
 } from "../../near/utils";
 //...
 
@@ -42,7 +42,7 @@ const Rooms = () => {
   //...
   const booking = async (room_id, price) => {
     try {
-      await booking_room({
+      await book_room({
         room_id,
         price,
       }).then((resp) => getRooms());

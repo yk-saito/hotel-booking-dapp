@@ -1,5 +1,8 @@
 import { connect, Contract, keyStores, WalletConnection } from "near-api-js";
-import { formatNearAmount } from "near-api-js/lib/utils/format";
+import {
+  formatNearAmount,
+  parseNearAmount,
+} from "near-api-js/lib/utils/format";
 import getConfig from "./config";
 
 const nearConfig = getConfig(process.env.NODE_ENV || "development");
@@ -54,6 +57,21 @@ export async function accountBalance() {
 
 export async function getAccountId() {
   return window.walletConnection.getAccountId();
+}
+
+export function createRoom(room /*name, image, description, location, price*/) {
+  console.log(room);
+  const timestamp = Date.now().toString();
+  console.log("timestamp: ", timestamp);
+  room.price = parseNearAmount(room.price + "");
+  return window.contract.set_room({
+    timestamp: timestamp,
+    name: room.name,
+    image: room.image,
+    description: room.description,
+    location: room.location,
+    price: room.price,
+  });
 }
 
 export async function get_rooms() {

@@ -50,7 +50,7 @@ const Rooms = () => {
       </div>
       <Row xs={1} sm={2} lg={3} className='g-3  mb-5 g-xl-4 g-xxl-5'>
         {rooms.map((_room) => (
-          <Room room={{ ..._room }} />
+          <Room room={{ ..._room }} key={_room.room_id} />
         ))}
       </Row>
     </>

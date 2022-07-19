@@ -12,7 +12,7 @@ const Room = ({ room, buy }) => {
   // }
 
   return (
-    <Col key={room_id}>
+    <Col>
       {/* <Card className=' h-100'> */}
       <Card style={{ width: "18rem" }}>
         <Card.Header>{owner}</Card.Header>

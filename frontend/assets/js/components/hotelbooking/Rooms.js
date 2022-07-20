@@ -5,7 +5,11 @@ import Room from "./Room";
 // import Loader from "../utils/Loader";
 import { Row } from "react-bootstrap";
 // import { NotificationSuccess, NotificationError } from "../utils/Notifications";
-import { get_rooms as getRoomList, createRoom } from "../../near/utils";
+import {
+  get_rooms as getRoomList,
+  createRoom,
+  book_room,
+} from "../../near/utils";
 //...
 
 const Rooms = () => {
@@ -36,7 +40,17 @@ const Rooms = () => {
   //...
 
   //...
-  // TODO: const buy = async(id, price) =? {}
+  const booking = async (room_id, price) => {
+    try {
+      await book_room({
+        room_id,
+        price,
+      }).then((resp) => getRooms());
+      console.log("Booking successfully.");
+    } catch (error) {
+      console.log("Failed to booking.");
+    }
+  };
   //...
 
   useEffect(() => {
@@ -50,7 +64,7 @@ const Rooms = () => {
       </div>
       <Row xs={1} sm={2} lg={3} className='g-3  mb-5 g-xl-4 g-xxl-5'>
         {rooms.map((_room) => (
-          <Room room={{ ..._room }} key={_room.room_id} />
+          <Room room={{ ..._room }} key={_room.room_id} booking={booking} />
         ))}
       </Row>
     </>

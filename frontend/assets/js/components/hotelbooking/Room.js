@@ -4,17 +4,19 @@ import { utils } from "near-api-js";
 import { Card, Button, Col, Badge, Stack } from "react-bootstrap";
 
 const Room = ({ room, booking }) => {
-  const { room_id, price, name, description, location, image, owner } = room;
+  const { id, name, description, location, image, price, owner_id, status } =
+    room;
+  console.log(room);
 
   const triggerBooking = () => {
-    booking(room_id, price); // add owner
+    booking(owner_id, name, price);
   };
 
   return (
     <Col>
       {/* <Card className=' h-100'> */}
       <Card style={{ width: "18rem" }}>
-        <Card.Header>{owner}</Card.Header>
+        <Card.Header>{owner_id}</Card.Header>
         <div className=' ratio ratio-4x3'>
           <img src={image} alt={name} style={{ objectFit: "cover" }} />
         </div>
@@ -22,9 +24,16 @@ const Room = ({ room, booking }) => {
           <Card.Title>{name}</Card.Title>
           <Card.Text>{description}</Card.Text>
           <Card.Text>{location}</Card.Text>
-          <Button variant='outline-dark' onClick={triggerBooking}>
-            Book for {utils.format.formatNearAmount(price)} NEAR
-          </Button>
+          {status === "Available" && (
+            <Button variant='outline-dark' onClick={triggerBooking}>
+              Book for {utils.format.formatNearAmount(price)} NEAR
+            </Button>
+          )}
+          {status !== "Available" && (
+            <Button variant='secondary' onClick={triggerBooking} disabled>
+              Booked
+            </Button>
+          )}
         </Card.Body>
       </Card>
     </Col>

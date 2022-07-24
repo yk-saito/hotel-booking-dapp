@@ -23,11 +23,20 @@ const Wallet = ({ address, amount, symbol, destroy }) => {
               <span className='font-monospace'>{address}</span>
             </a>
           </li>
+          {/* Show Room management */}
+          <li>
+            <button
+              className='dropdown-item bi bi-check-lg me-2 fs-4'
+              onClick={() => navigate("/room-management")}
+            >
+              Room Management
+            </button>
+          </li>
           {/* Show Booking list */}
           <li>
             <button
               className='dropdown-item bi bi-check-lg me-2 fs-4'
-              onClick={() => navigate("/booked")}
+              onClick={() => navigate("/booked", { address: { address } })}
             >
               Booked
             </button>

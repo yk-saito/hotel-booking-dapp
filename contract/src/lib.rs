@@ -80,6 +80,13 @@ impl HotelBooking {
         };
     }
 
+    pub fn change_status_to_available(&mut self, room_name: String) {
+        let owner_id = env::signer_account_id();
+        let hotel = self.hotels.get_mut(&owner_id).expect("ERR_NOT_FOUND_HOTEL");
+        let mut room = hotel.get_mut(&room_name).expect("ERR_NOT_FOUND_ROOM");
+        room.status = RoomStatus::Available;
+    }
+
     pub fn get_all_rooms(&self) -> Vec<&Room> {
         Vec::from_iter(self.hotels.values().flat_map(|hotel| hotel.values()))
     }

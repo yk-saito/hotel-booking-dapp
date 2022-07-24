@@ -34,7 +34,7 @@ export async function initContract() {
     nearConfig.contractName,
     {
       viewMethods: ["get_all_rooms", "get_hotel_rooms", "get_room"],
-      changeMethods: ["set_room", "book_room"],
+      changeMethods: ["set_room", "book_room", "change_status_to_available"],
     }
   );
 }
@@ -102,4 +102,11 @@ export async function book_room({ owner_id, room_name, price }) {
     GAS,
     price
   );
+}
+
+export async function change_status_to_available(room_name) {
+  console.log("in utils.js: ", room_name);
+  await window.contract.change_status_to_available({
+    room_name: room_name,
+  });
 }

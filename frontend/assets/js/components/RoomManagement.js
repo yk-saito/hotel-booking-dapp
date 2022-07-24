@@ -1,17 +1,28 @@
 import React, { useEffect, useState } from "react";
-
-import { get_hotel_rooms } from "../near/utils";
+import { useLocation } from "react-router-dom";
+import { get_hotel_rooms, change_status_to_available } from "../near/utils";
 
 const RoomManagement = () => {
-  const account = window.walletConnection.account(); // TODO: 引数でWallet.jsからもらう
-  console.log("get addres: ", account.accountId); // TODO: delete
+  const { location } = useLocation(); // TODO: エラー`undefined`なので要修正
+  console.log("get address: ", location.state.address); // TODO: delete
 
+  const account = window.walletConnection.account(); // TODO: 引数でWallet.jsからもらう
   const [manageRooms, setManageRooms] = useState([]);
 
   const getManageRooms = async () => {
     try {
-      console.log("Call get_hotel_rooms");
       setManageRooms(await get_hotel_rooms(account.accountId));
+    } catch (error) {
+      console.log({ error });
+    }
+  };
+
+  const triggerToAvailable = async (room_name) => {
+    try {
+      console.log("in RoomManagement.js: ", room_name);
+      change_status_to_available(room_name).then((resp) => {
+        getManageRooms();
+      });
     } catch (error) {
       console.log({ error });
     }
@@ -53,9 +64,11 @@ const RoomManagement = () => {
                 <td>{_room.name}</td>
                 <td>Booked</td>
                 {/* 予約したユーザーのアカウントIDを表示 */}
-                <td>GuestID</td>
+                <td>{_room.status.Booked.guest}</td>
                 <td>
-                  <button>CheckOut</button>
+                  <button onClick={(e) => triggerToAvailable(_room.name, e)}>
+                    Check Out
+                  </button>
                 </td>
               </tr>
             )}

@@ -1,5 +1,4 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Booked from "./assets/js/components/Booked";
 import Home from "./assets/js/components/Home";
 import RoomManagement from "./assets/js/components/RoomManagement";
 
@@ -8,7 +7,6 @@ const Routers = () => {
     <BrowserRouter>
       <Routes>
         <Route path='/' element={<Home />} />
-        <Route path='/booked' element={<Booked />} />
         <Route path='/room-management/:address' element={<RoomManagement />} />
       </Routes>
     </BrowserRouter>

@@ -32,15 +32,6 @@ const Wallet = ({ address, amount, symbol, destroy }) => {
               Room Management
             </button>
           </li>
-          {/* Show Booking list */}
-          <li>
-            <button
-              className='dropdown-item bi bi-check-lg me-2 fs-4'
-              onClick={() => navigate("/booked")}
-            >
-              Booked
-            </button>
-          </li>
           <li className='dropdown-divider'></li>
           {/* Show Destroy button */}
           <li>

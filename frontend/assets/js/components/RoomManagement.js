@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { Button, Table } from "react-bootstrap";
 import { get_hotel_rooms, change_status_to_available } from "../near/utils";
 
 const RoomManagement = () => {
@@ -27,15 +28,14 @@ const RoomManagement = () => {
     }
   };
 
-  // console.log(manageRooms); // TODO: delete
-
   useEffect(() => {
     getManageRooms();
   }, []);
   return (
     <>
       <h2>owner: {params.address}</h2>
-      <table className='table'>
+      {/* <table className='table'> */}
+      <Table striped bordered hover>
         <thead>
           <tr>
             <th scope='col'>#</th>
@@ -64,15 +64,20 @@ const RoomManagement = () => {
                 {/* 予約したユーザーのアカウントIDを表示 */}
                 <td>{_room.status.Booked.guest}</td>
                 <td>
-                  <button onClick={(e) => triggerToAvailable(_room.name, e)}>
+                  <Button
+                    variant='danger'
+                    size='sm'
+                    onClick={(e) => triggerToAvailable(_room.name, e)}
+                  >
                     Check Out
-                  </button>
+                  </Button>
                 </td>
               </tr>
             )}
           </tbody>
         ))}
-      </table>
+        {/* </table> */}
+      </Table>
     </>
   );
 };

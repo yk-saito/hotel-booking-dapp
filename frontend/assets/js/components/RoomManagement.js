@@ -1,17 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { get_hotel_rooms, change_status_to_available } from "../near/utils";
 
 const RoomManagement = () => {
-  const { location } = useLocation(); // TODO: エラー`undefined`なので要修正
-  console.log("get address: ", location.state.address); // TODO: delete
+  const params = useParams();
+  console.log("params.address=", params.address);
 
-  const account = window.walletConnection.account(); // TODO: 引数でWallet.jsからもらう
   const [manageRooms, setManageRooms] = useState([]);
 
   const getManageRooms = async () => {
     try {
-      setManageRooms(await get_hotel_rooms(account.accountId));
+      setManageRooms(await get_hotel_rooms(params.address));
     } catch (error) {
       console.log({ error });
     }
@@ -28,15 +27,14 @@ const RoomManagement = () => {
     }
   };
 
-  console.log(manageRooms); // TODO: delete
+  // console.log(manageRooms); // TODO: delete
 
   useEffect(() => {
     getManageRooms();
   }, []);
-
   return (
     <>
-      <h2>owner: {account.accountId}</h2>
+      <h2>owner: {params.address}</h2>
       <table className='table'>
         <thead>
           <tr>

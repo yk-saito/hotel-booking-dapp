@@ -27,7 +27,7 @@ const Wallet = ({ address, amount, symbol, destroy }) => {
           <li>
             <button
               className='dropdown-item bi bi-check-lg me-2 fs-4'
-              onClick={() => navigate("/room-management")}
+              onClick={() => navigate(`/room-management/${address}`)}
             >
               Room Management
             </button>
@@ -36,7 +36,7 @@ const Wallet = ({ address, amount, symbol, destroy }) => {
           <li>
             <button
               className='dropdown-item bi bi-check-lg me-2 fs-4'
-              onClick={() => navigate("/booked", { address: { address } })}
+              onClick={() => navigate("/booked")}
             >
               Booked
             </button>

@@ -1,11 +1,9 @@
 import React, { useEffect, useState, useCallback } from "react";
-// import { toast } from "react-toastify";
 import AddRoom from "./AddRoom";
 import Room from "./Room";
-// import Loader from "../utils/Loader";
 import { Row } from "react-bootstrap";
-// import { NotificationSuccess, NotificationError } from "../utils/Notifications";
-import { get_all_rooms, createRoom, book_room } from "../../near/utils";
+
+import { get_all_rooms, set_room, book_room } from "../../near/utils";
 //...
 
 const Rooms = () => {
@@ -23,30 +21,38 @@ const Rooms = () => {
 
   //...
   const addRoom = async (data) => {
-    try {
-      // TODO: 余裕あったらNotificationを追加
-      createRoom(data).then((resp) => {
-        console.log("Success!: ", data);
-        getRooms();
-      });
-    } catch (error) {
-      console.log({ error });
-    }
+    await set_room(data).then((is_success) => {
+      if (!is_success) {
+        console.log("addRoom: ", is_success);
+        alert(
+          'Error "Already exists."' +
+            "\n owner: " +
+            window.accountId +
+            "\n room : " +
+            data.name
+        );
+      }
+      getRooms();
+    });
   };
   //...
 
   //...
   const booking = async (owner_id, room_name, price) => {
-    try {
-      await book_room({
-        owner_id,
-        room_name,
-        price,
-      }).then((resp) => getRooms());
-      console.log("Booking successfully.");
-    } catch (error) {
-      console.log("Failed to booking.");
-    }
+    await book_room({
+      owner_id,
+      room_name,
+      price,
+    }).then((is_success) => {
+      // TODO: 以降の処理が実行されない
+      console.log("booking: ", is_success);
+      if (!is_success) {
+        alert('Error "Please try again."');
+      } else {
+        alert("Booked!" + "\nowner: " + owner_id + "\nroom name: " + room_name);
+      }
+      // getRooms();
+    });
   };
   //...
 

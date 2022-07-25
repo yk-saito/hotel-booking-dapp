@@ -81,12 +81,12 @@ export async function get_room(owner_id, room_name) {
   return room;
 }
 
-export function createRoom(room) {
+export function set_room(room) {
   console.log(room);
   const timestamp = Date.now().toString();
   console.log("timestamp: ", timestamp);
   room.price = parseNearAmount(room.price + "");
-  return window.contract.set_room({
+  let is_success = window.contract.set_room({
     timestamp: timestamp,
     name: room.name,
     image: room.image,
@@ -94,14 +94,16 @@ export function createRoom(room) {
     location: room.location,
     price: room.price,
   });
+  return is_success;
 }
 
 export async function book_room({ owner_id, room_name, price }) {
-  await window.contract.book_room(
+  let is_success = await window.contract.book_room(
     { owner_id: owner_id, room_name: room_name },
     GAS,
     price
   );
+  return is_success;
 }
 
 export async function change_status_to_available(room_name) {

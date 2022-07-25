@@ -49,7 +49,7 @@ impl HotelBooking {
         description: String,
         location: String,
         price: U128,
-    ) {
+    ) -> bool {
         let owner_id = env::signer_account_id();
         let new_room = Room {
             id: timestamp,
@@ -66,18 +66,24 @@ impl HotelBooking {
         match self.hotels.get_mut(&owner_id) {
             //既にホテルが登録されている時
             Some(hotel) => {
-                println!("HOTEL {:?}", hotel); // TODO: delete
+                // println!("HOTEL {:?}", hotel); // TODO: delete
                 let existing = hotel.insert(new_room.name.clone(), new_room);
-                println!("\n\nHOTEL_AFTER {:?}", hotel); // TODO: delete
-                assert!(existing.is_none(), "ERR_ROOM_ALREADY_EXIST");
+                // println!("\n\nHOTEL_AFTER {:?}", hotel); // TODO: delete
+                // assert!(existing.is_none(), "ERR_ROOM_ALREADY_EXIST");
+                if !(existing.is_none()) {
+                    return false;
+                }
+                true
             }
             // まだホテル自体が未登録だった時
             None => {
                 let mut new_hotel_room = HashMap::new();
                 new_hotel_room.insert(new_room.name.clone(), new_room);
                 let _ = self.hotels.insert(owner_id.clone(), new_hotel_room);
+                true
             }
         };
+        true
     }
 
     pub fn change_status_to_available(&mut self, room_name: String) {
@@ -107,15 +113,15 @@ impl HotelBooking {
         return booking Room
     */
     #[payable]
-    pub fn book_room(&mut self, owner_id: AccountId, room_name: String) {
+    pub fn book_room(&mut self, owner_id: AccountId, room_name: String) -> bool {
         let room = self.get_room(owner_id.clone(), room_name.clone());
 
         let account_id = env::signer_account_id();
         let deposit = env::attached_deposit();
-        assert!(
-            deposit == room.price.clone().into(),
-            "ERR_DEPOSIT_NOT_EQUAL_PRICE"
-        );
+        let room_price: u128 = room.price.clone().into();
+        if deposit != room_price {
+            return false;
+        }
 
         // ステータスを変更する
         let hotel = self.hotels.get_mut(&owner_id).expect("ERR_NOT_FOUND_HOTEL");
@@ -124,6 +130,7 @@ impl HotelBooking {
 
         // 送金clear
         Promise::new(owner_id.clone()).transfer(deposit);
+        true
     }
 }
 
@@ -160,7 +167,7 @@ mod tests {
         testing_env!(context.predecessor_account_id(accounts(0)).build());
 
         let mut contract = HotelBooking::default();
-        contract.set_room(
+        let is_success = contract.set_room(
             "0".to_string(),
             "JAPAN_room".to_string(),
             "test.img".to_string(),
@@ -168,6 +175,7 @@ mod tests {
             "Japan".to_string(),
             near_to_yocto(10),
         );
+        assert_eq!(is_success, true);
 
         let all_rooms = contract.get_all_rooms();
         // println!("\nALL_ROOMS: {:?}\n", all_rooms);
@@ -186,7 +194,7 @@ mod tests {
         testing_env!(context.predecessor_account_id(accounts(0)).build());
 
         let mut contract = HotelBooking::default();
-        contract.set_room(
+        let _ = contract.set_room(
             "0".to_string(),
             "JAPAN_room".to_string(),
             "test.img".to_string(),
@@ -194,7 +202,7 @@ mod tests {
             "Japan".to_string(),
             near_to_yocto(10),
         );
-        contract.set_room(
+        let _ = contract.set_room(
             "1".to_string(),
             "USA_room".to_string(),
             "test2.img".to_string(),
@@ -241,7 +249,7 @@ mod tests {
         let hotel_owner_id = env::signer_account_id();
         let room_name = String::from("JAPAN_room");
         let mut contract = HotelBooking::default();
-        contract.set_room(
+        let _ = contract.set_room(
             "0".to_string(),
             room_name.clone(),
             "test.img".to_string(),
@@ -265,7 +273,8 @@ mod tests {
 
         // let available_room = contract.get_room(hotel_owner_id.clone(), room_name.clone());
         // assert_eq!(available_room.status, RoomStatus::Available);
-        let _ = contract.book_room(hotel_owner_id.clone(), room_name.clone());
+        let is_success = contract.book_room(hotel_owner_id.clone(), room_name.clone());
+        assert_eq!(is_success, true);
         let booking_room = contract.get_room(hotel_owner_id.clone(), room_name);
         println!("STATUS: {:?}", booking_room.status); // TODO: delete
         assert_eq!(
@@ -274,5 +283,35 @@ mod tests {
                 guest: hotel_owner_id
             }
         );
+    }
+
+    #[test]
+    fn err_set_same_room() {
+        let mut context = get_context(false);
+        testing_env!(context.build());
+        testing_env!(context.predecessor_account_id(accounts(0)).build());
+
+        let mut contract = HotelBooking::default();
+        let _ = contract.set_room(
+            "0".to_string(),
+            "JAPAN_room".to_string(),
+            "test.img".to_string(),
+            "This is JAPAN room".to_string(),
+            "Japan".to_string(),
+            near_to_yocto(10),
+        );
+        let is_success = contract.set_room(
+            "1".to_string(),
+            "JAPAN_room".to_string(),
+            "test.img".to_string(),
+            "This is JAPAN room".to_string(),
+            "Japan".to_string(),
+            near_to_yocto(10),
+        );
+        assert_eq!(is_success, false);
+
+        let owner_id = env::signer_account_id();
+        let rooms = contract.get_hotel_rooms(owner_id);
+        assert_eq!(rooms.len(), 1);
     }
 }

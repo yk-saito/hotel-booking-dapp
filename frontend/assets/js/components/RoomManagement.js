@@ -48,7 +48,7 @@ const RoomManagement = () => {
           </tr>
         </thead>
         {bookedRooms.map((_room) => (
-          <tbody key={_room.id}>
+          <tbody key={`${_room.name}${_room.checkin_date}`}>
             <tr>
               <th scope='row'>{_room.id}</th>
               <td>{_room.name}</td>
@@ -66,7 +66,6 @@ const RoomManagement = () => {
                 </Button>
               </td>
             </tr>
-            )
           </tbody>
         ))}
       </Table>

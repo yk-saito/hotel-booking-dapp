@@ -2,6 +2,7 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import { initContract } from "./assets/js/near/utils";
+import { BrowserRouter } from "react-router-dom";
 
 import "bootstrap";
 import "bootstrap-icons/font/bootstrap-icons.css";
@@ -12,7 +13,9 @@ const root = createRoot(container);
 
 window.nearInitPromise = initContract()
   .then(() => {
-    <App />;
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>;
     root.render(<App tab='home' />);
   })
   .catch(console.error);

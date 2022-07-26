@@ -1,61 +1,51 @@
 import React from "react";
-import { Dropdown, Stack, Spinner } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
 
-/**
- *
- * @param {*} address
- * @param {string} amount
- * @param {string} symbol
- * @param {function} destroy
- * @returns {null}
- */
 const Wallet = ({ address, amount, symbol, destroy }) => {
   if (address) {
+    const navigate = useNavigate();
     return (
-      <>
-        <Dropdown>
-          <Dropdown.Toggle
-            variant='light'
-            align='end'
-            id='dropdown-basic'
-            className='d-flex align-items-center border rounded-pill py-1'
-          >
-            {amount ? (
-              <>
-                {amount} <span className='ms-1'> {symbol}</span>
-              </>
-            ) : (
-              <Spinner animation='border' size='sm' className='opacity-25' />
-            )}
-          </Dropdown.Toggle>
-
-          <Dropdown.Menu className='shadow-lg border-0'>
-            {/* Show accountID */}
-            <Dropdown.Item
+      <div className='dropdown'>
+        <button
+          className='d-flex align-items-center border rounded-pill py-1 dropdown-toggle'
+          id='dropdownMenuButton1'
+          data-bs-toggle='dropdown'
+        >
+          {amount} <span className='ms-1'> {symbol}</span>
+        </button>
+        <ul className='dropdown-menu' aria-labelledby='dropdownMenuButton1'>
+          {/* Show accountID */}
+          <li>
+            <a
+              className='dropdown-item bi bi-person-circle fs-4'
               href={`https://explorer.testnet.near.org/accounts/${address}`}
-              target='_blank'
             >
-              <Stack direction='horizontal' gap={2}>
-                <i className='bi bi-person-circle fs-4' />
-                <span className='font-monospace'>{address}</span>
-              </Stack>
-            </Dropdown.Item>
-
-            {/* Show Disconnect button */}
-            <Dropdown.Divider />
-            <Dropdown.Item
-              as='button'
-              className='d-flex align-items-center'
+              <span className='font-monospace'>{address}</span>
+            </a>
+          </li>
+          {/* Show Room management */}
+          <li>
+            <button
+              className='dropdown-item bi bi-check-lg me-2 fs-4'
+              onClick={() => navigate(`/room-management/${address}`)}
+            >
+              Room Management
+            </button>
+          </li>
+          <li className='dropdown-divider'></li>
+          {/* Show Destroy button */}
+          <li>
+            <button
+              className='dropdown-item bi bi-box-arrow-right me-2 fs-4'
               onClick={() => {
                 destroy();
               }}
             >
-              <i className='bi bi-box-arrow-right me-2 fs-4' />
               Disconnect
-            </Dropdown.Item>
-          </Dropdown.Menu>
-        </Dropdown>
-      </>
+            </button>
+          </li>
+        </ul>
+      </div>
     );
   }
 

@@ -33,8 +33,13 @@ export async function initContract() {
     window.walletConnection.account(),
     nearConfig.contractName,
     {
-      viewMethods: ["get_room", "get_rooms"],
-      changeMethods: ["book_room", "set_room"],
+      viewMethods: [
+        "get_all_rooms",
+        "get_hotel_rooms",
+        "get_room",
+        "get_booked_rooms",
+      ],
+      changeMethods: ["set_room", "book_room", "delete_booked_info"],
     }
   );
 }
@@ -61,17 +66,39 @@ export async function getAccountId() {
   return window.walletConnection.getAccountId();
 }
 
-export async function get_rooms() {
-  let rooms = await window.contract.get_rooms();
-  return rooms;
+export async function get_all_rooms() {
+  let all_rooms = await window.contract.get_all_rooms();
+  return all_rooms;
 }
 
-export function createRoom(room /*name, image, description, location, price*/) {
+export async function get_hotel_rooms(owner_id) {
+  let hotel_rooms = await window.contract.get_hotel_rooms({
+    owner_id: owner_id,
+  });
+  return hotel_rooms;
+}
+
+export async function get_room(owner_id, room_name) {
+  let room = await window.contract.get_room({
+    owner_id: owner_id,
+    room_name: room_name,
+  });
+  return room;
+}
+
+export async function get_booked_rooms(owner_id) {
+  let room = await window.contract.get_booked_rooms({
+    owner_id: owner_id,
+  });
+  return room;
+}
+
+export function set_room(room) {
   console.log(room);
   const timestamp = Date.now().toString();
   console.log("timestamp: ", timestamp);
   room.price = parseNearAmount(room.price + "");
-  return window.contract.set_room({
+  let is_success = window.contract.set_room({
     timestamp: timestamp,
     name: room.name,
     image: room.image,
@@ -79,8 +106,28 @@ export function createRoom(room /*name, image, description, location, price*/) {
     location: room.location,
     price: room.price,
   });
+  return is_success;
 }
 
-export async function book_room({ room_id, price }) {
-  await window.contract.book_room({ room_id: room_id }, GAS, price);
+export async function book_room({ owner_id, room_name, date, price }) {
+  console.log("book_room date: ", date);
+  let is_success = await window.contract.book_room(
+    {
+      owner_id: owner_id,
+      room_name: room_name,
+      checkin_date: date,
+    },
+    GAS,
+    price
+  );
+  return is_success;
+}
+
+export async function delete_booked_info(room_name, checkin_date) {
+  console.log("in utils.js: ", room_name);
+  console.log("in utils.js: ", checkin_date);
+  await window.contract.delete_booked_info({
+    room_name: room_name,
+    checkin_date: checkin_date,
+  });
 }

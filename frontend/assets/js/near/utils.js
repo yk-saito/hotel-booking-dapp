@@ -33,8 +33,13 @@ export async function initContract() {
     window.walletConnection.account(),
     nearConfig.contractName,
     {
-      viewMethods: ["get_all_rooms", "get_hotel_rooms", "get_room"],
-      changeMethods: ["set_room", "book_room", "change_status_to_available"],
+      viewMethods: [
+        "get_all_rooms",
+        "get_hotel_rooms",
+        "get_room",
+        "get_booked_rooms",
+      ],
+      changeMethods: ["set_room", "book_room", "delete_booked_info"],
     }
   );
 }
@@ -81,6 +86,13 @@ export async function get_room(owner_id, room_name) {
   return room;
 }
 
+export async function get_booked_rooms(owner_id) {
+  let room = await window.contract.get_booked_rooms({
+    owner_id: owner_id,
+  });
+  return room;
+}
+
 export function set_room(room) {
   console.log(room);
   const timestamp = Date.now().toString();
@@ -100,16 +112,22 @@ export function set_room(room) {
 export async function book_room({ owner_id, room_name, date, price }) {
   console.log("book_room date: ", date);
   let is_success = await window.contract.book_room(
-    { owner_id: owner_id, room_name: room_name, checkin_date: date },
+    {
+      owner_id: owner_id,
+      room_name: room_name,
+      checkin_date: date,
+    },
     GAS,
     price
   );
   return is_success;
 }
 
-export async function change_status_to_available(room_name) {
+export async function delete_booked_info(room_name, checkin_date) {
   console.log("in utils.js: ", room_name);
-  await window.contract.change_status_to_available({
+  console.log("in utils.js: ", checkin_date);
+  await window.contract.delete_booked_info({
     room_name: room_name,
+    checkin_date: checkin_date,
   });
 }

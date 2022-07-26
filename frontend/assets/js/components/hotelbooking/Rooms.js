@@ -9,7 +9,7 @@ import { get_all_rooms, set_room, book_room } from "../../near/utils";
 const Rooms = () => {
   const [date, setDate] = useState("");
   const [rooms, setRooms] = useState([]);
-  const [search, serSearchRooms] = useState([]);
+  const [search, searchRooms] = useState([]);
 
   //...
   const getRooms = useCallback(async () => {
@@ -30,7 +30,7 @@ const Rooms = () => {
         console.log(rooms[key]);
       }
     });
-    serSearchRooms(search_room);
+    searchRooms(search_room);
     console.log("GET SEARCH ROOM: ", search_room);
   };
   //...
@@ -55,21 +55,22 @@ const Rooms = () => {
 
   //...
   const booking = async (owner_id, room_name, price) => {
-    book_room({
+    let is_success = book_room({
       owner_id,
       room_name,
       date,
       price,
-    }).then((is_success) => {
-      // TODO: 以降の処理が実行されない
-      console.log("booking: ", is_success);
-      if (!is_success) {
-        alert('Error "Please try again."');
-      } else {
-        alert("Booked!" + "\nowner: " + owner_id + "\nroom name: " + room_name);
-      }
-      // getRooms();
     });
+    // }).then((is_success) => {
+    //   // TODO: 以降の処理が実行されない
+    //   console.log("booking: ", is_success);
+    //   if (!is_success) {
+    //     alert('Error "Please try again."');
+    //   } else {
+    //     alert("Booked!" + "\nowner: " + owner_id + "\nroom name: " + room_name);
+    //   }
+    //   // getRooms();
+    // });
   };
 
   //...

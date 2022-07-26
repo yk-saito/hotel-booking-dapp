@@ -97,9 +97,10 @@ export function set_room(room) {
   return is_success;
 }
 
-export async function book_room({ owner_id, room_name, price }) {
+export async function book_room({ owner_id, room_name, date, price }) {
+  console.log("book_room date: ", date);
   let is_success = await window.contract.book_room(
-    { owner_id: owner_id, room_name: room_name },
+    { owner_id: owner_id, room_name: room_name, checkin_date: date },
     GAS,
     price
   );

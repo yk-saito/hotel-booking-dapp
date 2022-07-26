@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::collections::UnorderedSet;
 use near_sdk::json_types::U128;
 use near_sdk::serde::{Deserialize, Serialize};
 use near_sdk::{env, near_bindgen, AccountId, Promise};
@@ -9,11 +10,13 @@ use near_sdk::{env, near_bindgen, AccountId, Promise};
 #[serde(crate = "near_sdk::serde")]
 pub enum RoomStatus {
     Available,
-    Booked { guest: AccountId },
+    Booked {
+        guest: AccountId,
+        checkin_date: String,
+    },
 }
 
-#[derive(Serialize, Deserialize, Debug, BorshSerialize, BorshDeserialize)]
-#[serde(crate = "near_sdk::serde")]
+#[derive(BorshDeserialize, BorshSerialize)]
 pub struct Room {
     id: String, // Timestamp
     name: String,
@@ -23,6 +26,21 @@ pub struct Room {
     price: U128,
     owner_id: AccountId,
     status: RoomStatus,
+    booked_date: UnorderedSet<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, BorshSerialize, BorshDeserialize)]
+#[serde(crate = "near_sdk::serde")]
+pub struct JsonRoom {
+    id: String, // Timestamp
+    name: String,
+    image: String,
+    description: String,
+    location: String,
+    price: U128,
+    owner_id: AccountId,
+    status: RoomStatus,
+    booked_date: Vec<String>,
 }
 
 #[near_bindgen]
@@ -60,16 +78,14 @@ impl HotelBooking {
             price,
             owner_id: owner_id.clone(),
             status: RoomStatus::Available,
+            booked_date: UnorderedSet::new(b"u"),
         };
 
         // get_mut: キーに対応する値へのミュータブルリファレンスを返す。
         match self.hotels.get_mut(&owner_id) {
             //既にホテルが登録されている時
             Some(hotel) => {
-                // println!("HOTEL {:?}", hotel); // TODO: delete
                 let existing = hotel.insert(new_room.name.clone(), new_room);
-                // println!("\n\nHOTEL_AFTER {:?}", hotel); // TODO: delete
-                // assert!(existing.is_none(), "ERR_ROOM_ALREADY_EXIST");
                 if !(existing.is_none()) {
                     return false;
                 }
@@ -93,27 +109,51 @@ impl HotelBooking {
         room.status = RoomStatus::Available;
     }
 
-    pub fn get_all_rooms(&self) -> Vec<&Room> {
-        Vec::from_iter(self.hotels.values().flat_map(|hotel| hotel.values()))
+    pub fn get_all_rooms(&self) -> Vec<JsonRoom> {
+        // Vec::from_iter(self.hotels.values().flat_map(|hotel| hotel.values()))
+        let mut all_rooms = vec![];
+
+        for (_, hotel) in self.hotels.iter() {
+            for (_, room) in hotel {
+                let json_room = self.create_json_room(room);
+                all_rooms.push(json_room);
+            }
+        }
+        all_rooms
     }
 
-    pub fn get_hotel_rooms(&self, owner_id: AccountId) -> Vec<&Room> {
+    pub fn get_hotel_rooms(&self, owner_id: AccountId) -> Vec<JsonRoom> {
+        let mut hotel_rooms = vec![];
         match self.hotels.get(&owner_id) {
-            Some(hotel) => Vec::from_iter(hotel.values()),
-            None => vec![],
+            Some(hotel) => {
+                for (_, room) in hotel {
+                    hotel_rooms.push(self.create_json_room(room));
+                }
+                hotel_rooms
+            }
+            None => hotel_rooms,
         }
     }
 
-    pub fn get_room(&self, owner_id: AccountId, room_name: String) -> &Room {
+    pub fn get_room(&self, owner_id: AccountId, room_name: String) -> JsonRoom {
         let hotel = self.hotels.get(&owner_id).expect("ERR_NOT_FOUND_HOTEL");
-        hotel.get(&room_name).expect("ERR_NOT_FOUND_ROOM")
+        let room = hotel.get(&room_name).expect("ERR_NOT_FOUND_ROOM");
+        let json_room = self.create_json_room(&room);
+
+        println!("\n\nROOM: {:?}\n\n", json_room);
+        json_room
     }
 
     /*
-        return booking Room
+        return booking JsonRoom
     */
     #[payable]
-    pub fn book_room(&mut self, owner_id: AccountId, room_name: String) -> bool {
+    pub fn book_room(
+        &mut self,
+        owner_id: AccountId,
+        room_name: String,
+        checkin_date: String,
+    ) -> bool {
         let room = self.get_room(owner_id.clone(), room_name.clone());
 
         let account_id = env::signer_account_id();
@@ -126,11 +166,48 @@ impl HotelBooking {
         // ステータスを変更する
         let hotel = self.hotels.get_mut(&owner_id).expect("ERR_NOT_FOUND_HOTEL");
         let mut room = hotel.get_mut(&room_name).expect("ERR_NOT_FOUND_ROOM");
-        room.status = RoomStatus::Booked { guest: account_id };
+        room.status = RoomStatus::Booked {
+            guest: account_id,
+            checkin_date: checkin_date.clone(),
+        };
 
-        // 送金clear
+        // 予約が入った日付を登録
+        room.booked_date.insert(&checkin_date);
+
+        // トークンを送信
         Promise::new(owner_id.clone()).transfer(deposit);
         true
+    }
+}
+
+impl HotelBooking {
+    pub fn create_json_room(&self, room: &Room) -> JsonRoom {
+        let status: RoomStatus;
+        match room.status {
+            RoomStatus::Available => status = RoomStatus::Available,
+            RoomStatus::Booked {
+                ref guest,
+                ref checkin_date,
+            } => {
+                status = RoomStatus::Booked {
+                    guest: guest.clone(),
+                    checkin_date: checkin_date.clone(),
+                }
+            }
+        }
+        let booked_date = room.booked_date.to_vec();
+        let json_room = JsonRoom {
+            id: room.id.clone(),
+            name: room.name.clone(),
+            image: room.image.clone(),
+            description: room.description.clone(),
+            location: room.location.clone(),
+            price: room.price,
+            owner_id: room.owner_id.clone(),
+            status: status,
+            booked_date: booked_date,
+        };
+        json_room
     }
 }
 
@@ -268,19 +345,20 @@ mod tests {
         let rooms = contract.get_all_rooms();
         assert_eq!(rooms.len(), 2);
 
-        // TODO: 要確認
-        // このコメントアウト外してテストすると`error[E0502]: cannot borrow `contract` as mutable because it is also borrowed as immutable`
-
-        // let available_room = contract.get_room(hotel_owner_id.clone(), room_name.clone());
-        // assert_eq!(available_room.status, RoomStatus::Available);
-        let is_success = contract.book_room(hotel_owner_id.clone(), room_name.clone());
+        let available_room = contract.get_room(hotel_owner_id.clone(), room_name.clone());
+        assert_eq!(available_room.status, RoomStatus::Available);
+        let is_success = contract.book_room(
+            hotel_owner_id.clone(),
+            room_name.clone(),
+            "2022-08-20".to_string(),
+        );
         assert_eq!(is_success, true);
         let booking_room = contract.get_room(hotel_owner_id.clone(), room_name);
-        println!("STATUS: {:?}", booking_room.status); // TODO: delete
         assert_eq!(
             booking_room.status,
             RoomStatus::Booked {
-                guest: hotel_owner_id
+                guest: hotel_owner_id,
+                checkin_date: "2022-08-20".to_string()
             }
         );
     }

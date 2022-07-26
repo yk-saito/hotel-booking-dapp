@@ -1,13 +1,15 @@
 import React, { useEffect, useState, useCallback } from "react";
 import AddRoom from "./AddRoom";
 import Room from "./Room";
-import { Row } from "react-bootstrap";
+import { Button, Form, Row, Stack } from "react-bootstrap";
 
 import { get_all_rooms, set_room, book_room } from "../../near/utils";
 //...
 
 const Rooms = () => {
+  const [date, setDate] = useState("");
   const [rooms, setRooms] = useState([]);
+  const [search, serSearchRooms] = useState([]);
 
   //...
   const getRooms = useCallback(async () => {
@@ -17,6 +19,20 @@ const Rooms = () => {
       console.log({ error });
     }
   });
+
+  const triggerSearch = () => {
+    const keys = Object.keys(rooms);
+    console.log("keys:", keys);
+    var search_room = [];
+    keys.forEach((key) => {
+      if (rooms[key].booked_date.includes(date) == false) {
+        search_room.push(rooms[key]);
+        console.log(rooms[key]);
+      }
+    });
+    serSearchRooms(search_room);
+    console.log("GET SEARCH ROOM: ", search_room);
+  };
   //...
 
   //...
@@ -39,9 +55,10 @@ const Rooms = () => {
 
   //...
   const booking = async (owner_id, room_name, price) => {
-    await book_room({
+    book_room({
       owner_id,
       room_name,
+      date,
       price,
     }).then((is_success) => {
       // TODO: 以降の処理が実行されない
@@ -54,6 +71,7 @@ const Rooms = () => {
       // getRooms();
     });
   };
+
   //...
 
   useEffect(() => {
@@ -65,8 +83,28 @@ const Rooms = () => {
         <h1 className='fs-4 fw-bold mb-0'>Hotel Booking</h1>
         <AddRoom save={addRoom} />
       </div>
+
+      <Stack direction='horizontal' gap={3}>
+        <Form.Control
+          type='date'
+          htmlSize='10'
+          onChange={(e) => {
+            setDate(e.target.value);
+          }}
+        />
+        <Button
+          variant='secondary'
+          onClick={() => {
+            triggerSearch();
+          }}
+        >
+          Search
+        </Button>
+      </Stack>
+
       <Row xs={1} sm={2} lg={3} className='g-3  mb-5 g-xl-4 g-xxl-5'>
-        {rooms.map((_room) => (
+        {/* {rooms.map((_room) => ( */}
+        {search.map((_room) => (
           <Room room={{ ..._room }} key={_room.id} booking={booking} />
         ))}
       </Row>

@@ -33,8 +33,7 @@ const RoomManagement = () => {
   }, []);
   return (
     <>
-      <h2>owner: {params.address}</h2>
-      {/* <table className='table'> */}
+      <h2>Hotel owner: {params.address}</h2>
       <Table striped bordered hover>
         <thead>
           <tr>
@@ -42,6 +41,7 @@ const RoomManagement = () => {
             <th scope='col'>Room Name</th>
             <th scope='col'>Status</th>
             <th scope='col'>GuestID</th>
+            <th scope='col'>Check In</th>
             <th scope='col'>Manage Status</th>
           </tr>
         </thead>
@@ -54,6 +54,7 @@ const RoomManagement = () => {
                 <td>{_room.status}</td>
                 <td>-</td>
                 <td>-</td>
+                <td>-</td>
               </tr>
             )}
             {_room.status !== "Available" && (
@@ -63,6 +64,7 @@ const RoomManagement = () => {
                 <td>Booked</td>
                 {/* 予約したユーザーのアカウントIDを表示 */}
                 <td>{_room.status.Booked.guest}</td>
+                <td>{_room.status.Booked.checkin_date}</td>
                 <td>
                   <Button
                     variant='danger'

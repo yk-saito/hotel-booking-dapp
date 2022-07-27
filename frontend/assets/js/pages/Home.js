@@ -6,45 +6,34 @@ import Col from "react-bootstrap/Col";
 import Form from "react-bootstrap/Form";
 import Row from "react-bootstrap/Row";
 
-import { login, logout, accountBalance } from "../near/utils";
-
 const Home = function useAppWrapper() {
   const navigate = useNavigate();
   const [date, setDate] = useState("");
   return (
-    <div
-      className='d-flex justify-content-center flex-column text-center '
-      style={{ background: "#000", minHeight: "100vh" }}
-    >
-      <div className='mt-auto text-light mb-5'>
-        <h1>UNCHAIN HOTEL BOOKING</h1>
-        <p>Select the dates you would like to stay at the hotel.</p>
-        <Form>
-          <Row className='justify-content-center'>
-            <Col xs='auto'>
-              <Form.Control
-                type='date'
-                htmlSize='10'
-                onChange={(e) => {
-                  setDate(e.target.value);
-                }}
-              />
-            </Col>
-            <Col xs='auto'>
-              <Button
-                variant='secondary'
-                onClick={() =>
-                  // triggerSearch();
-                  navigate(`/search/${date}`)
-                }
-              >
-                Search
-              </Button>
-            </Col>
-          </Row>
-        </Form>
-      </div>
-      <p className='mt-auto text-secondary'>Powered by NEAR</p>
+    <div className='text-center' style={{ margin: "200px" }}>
+      <h1>Welcome.</h1>
+      <h1>Select your stay dates and find a hotel!</h1>
+      <Form style={{ marginTop: "50px" }}>
+        <Row className='justify-content-center'>
+          <Col xs='auto'>
+            <Form.Control
+              type='date'
+              htmlSize='10'
+              onChange={(e) => {
+                setDate(e.target.value);
+              }}
+            />
+          </Col>
+          <Col xs='auto'>
+            <Button
+              variant='secondary'
+              onClick={() => navigate(`/search/${date}`)}
+            >
+              Search
+            </Button>
+          </Col>
+        </Row>
+      </Form>
     </div>
   );
 };

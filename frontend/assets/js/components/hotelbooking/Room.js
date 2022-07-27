@@ -1,7 +1,10 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { utils } from "near-api-js";
-import { Card, Button, Col } from "react-bootstrap";
+import Col from "react-bootstrap/Col";
+import Row from "react-bootstrap/Row";
+import Button from "react-bootstrap/Button";
+import Image from "react-bootstrap/Image";
 
 const Room = ({ room, booking }) => {
   const { id, name, description, location, image, price, owner_id, status } =
@@ -14,24 +17,24 @@ const Room = ({ room, booking }) => {
   };
 
   return (
-    <Col>
-      {/* <Card className=' h-100'> */}
-      <Card style={{ width: "18rem" }}>
-        <Card.Header>{owner_id}</Card.Header>
-        <div className=' ratio ratio-4x3'>
-          <img src={image} alt={name} style={{ objectFit: "cover" }} />
-        </div>
-        <Card.Body>
-          <Card.Title>{name}</Card.Title>
-          <Card.Text>{description}</Card.Text>
-          <Card.Text>{location}</Card.Text>
-          <Card.Text>1 room / 1 bed / 1 night</Card.Text>
-          <Button variant='outline-dark' onClick={triggerBooking}>
-            Book for {utils.format.formatNearAmount(price)} NEAR
-          </Button>
-        </Card.Body>
-      </Card>
-    </Col>
+    <Row style={{ padding: "20px" }}>
+      <Col xs={1}></Col>
+      <Col xs={2}>
+        <Image src={image} alt={name} width='300' />
+      </Col>
+      <Col xs={7}>
+        <h3>HOTEL NAME</h3>
+        <h4>{name}</h4>
+        <p>{description}</p>
+        <h5>{location}</h5>
+        <p>1 room / 1 bed / 1 night</p>
+      </Col>
+      <Col xs={2}>
+        <Button variant='outline-dark' onClick={triggerBooking}>
+          Book for {utils.format.formatNearAmount(price)} NEAR
+        </Button>
+      </Col>
+    </Row>
   );
 };
 

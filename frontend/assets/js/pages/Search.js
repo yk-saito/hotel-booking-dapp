@@ -88,12 +88,11 @@ const Search = () => {
   }, [params]);
   return (
     <>
-      <div className='d-flex justify-content-between align-items-center mb-4'>
-        <AddRoom save={addRoom} />
-      </div>
-
       <Form>
-        <Row className='justify-content-center'>
+        <Row
+          className='justify-content-center'
+          style={{ marginTop: "50px", marginBottom: "50px" }}
+        >
           <Col xs='auto'>
             <Form.Control
               type='date'

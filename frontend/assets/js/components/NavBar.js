@@ -59,23 +59,22 @@ const NavBar = () => {
                     Disconnect
                   </NavDropdown.Item>
                 </NavDropdown>
-                <NavDropdown title='Dropdown' id='collasible-nav-dropdown'>
+                {/* Hotel Owner */}
+                <NavDropdown
+                  title='For hotel owners'
+                  id='collasible-nav-dropdown'
+                >
+                  <NavDropdown.Item href={`/room-list/${window.accountId}`}>
+                    Room List
+                  </NavDropdown.Item>
                   <NavDropdown.Item
-                    onClick={() =>
-                      navigate(`/room-management/${window.accountId}`)
-                    }
+                    onClick={() => navigate(`/booked-list/${window.accountId}`)}
                   >
-                    Booked room
-                  </NavDropdown.Item>
-                  <NavDropdown.Item href='#action/3.2'>
-                    Another action
-                  </NavDropdown.Item>
-                  <NavDropdown.Item href='#action/3.3'>
-                    Something
+                    Booked List
                   </NavDropdown.Item>
                   <NavDropdown.Divider />
-                  <NavDropdown.Item href='#action/3.4'>
-                    Separated link
+                  <NavDropdown.Item href='/search'>
+                    Back search page
                   </NavDropdown.Item>
                 </NavDropdown>
               </>

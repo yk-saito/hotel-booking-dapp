@@ -20,7 +20,7 @@ const Room = ({ room, booking }) => {
     <Row style={{ padding: "20px" }}>
       <Col xs={1}></Col>
       <Col xs={2}>
-        <Image src={image} alt={name} width='300' />
+        <Image src={image} alt={name} width='300' fluid />
       </Col>
       <Col xs={7}>
         <h3>HOTEL NAME</h3>

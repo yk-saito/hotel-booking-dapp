@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
-import { Button, Modal, Form, FloatingLabel } from "react-bootstrap";
+import { Button, Modal, Form } from "react-bootstrap";
 
 const AddRoom = ({ save }) => {
   const [name, setName] = useState("");
@@ -19,14 +19,7 @@ const AddRoom = ({ save }) => {
   //...
   return (
     <>
-      <Button
-        onClick={handleShow}
-        variant='dark'
-        className='rounded-pill px-0'
-        style={{ width: "38px" }}
-      >
-        <i className='bi bi-plus'></i>
-      </Button>
+      <Button onClick={handleShow}>POST</Button>
       <Modal show={show} onHide={handleClose} centered>
         <Modal.Header closeButton>
           <Modal.Title>New Room</Modal.Title>
@@ -34,7 +27,6 @@ const AddRoom = ({ save }) => {
         <Form>
           <Modal.Body>
             <Form.Group className='mb-3' controlId='inputName'>
-              {/* <Form.Label>Room name</Form.Label> */}
               <Form.Control
                 type='text'
                 onChange={(e) => {
@@ -44,7 +36,6 @@ const AddRoom = ({ save }) => {
               />
             </Form.Group>
             <Form.Group className='mb-3' controlId='inputUrl'>
-              {/* <Form.Label>Image URL</Form.Label> */}
               <Form.Control
                 type='text'
                 placeholder='Image URL'
@@ -54,7 +45,6 @@ const AddRoom = ({ save }) => {
               />
             </Form.Group>
             <Form.Group className='mb-3' controlId='inputDescription'>
-              {/* <Form.Label>Description</Form.Label> */}
               <Form.Control
                 as='textarea'
                 placeholder='description'
@@ -65,7 +55,6 @@ const AddRoom = ({ save }) => {
               />
             </Form.Group>
             <Form.Group className='mb-3' controlId='inputLocation'>
-              {/* <Form.Label>Location</Form.Label> */}
               <Form.Control
                 type='text'
                 placeholder='Location'
@@ -75,7 +64,6 @@ const AddRoom = ({ save }) => {
               />
             </Form.Group>
             <Form.Group className='mb-3' controlId='inputPrice'>
-              {/* <Form.Label>Price</Form.Label> */}
               <Form.Control
                 type='text'
                 placeholder='Price'

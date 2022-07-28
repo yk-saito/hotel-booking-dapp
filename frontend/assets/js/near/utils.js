@@ -34,7 +34,8 @@ export async function initContract() {
     nearConfig.contractName,
     {
       viewMethods: [
-        "get_all_rooms",
+        // "get_all_rooms",
+        "get_available_rooms",
         "get_hotel_rooms",
         "get_room",
         "get_booked_rooms",
@@ -66,9 +67,16 @@ export async function getAccountId() {
   return window.walletConnection.getAccountId();
 }
 
-export async function get_all_rooms() {
-  let all_rooms = await window.contract.get_all_rooms();
-  return all_rooms;
+// export async function get_all_rooms() {
+//   let all_rooms = await window.contract.get_all_rooms();
+//   return all_rooms;
+// }
+
+export async function get_available_rooms(searchDate) {
+  let available_rooms = await window.contract.get_available_rooms({
+    checkin_date: searchDate,
+  });
+  return available_rooms;
 }
 
 export async function get_hotel_rooms(owner_id) {

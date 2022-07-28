@@ -3,11 +3,10 @@ import AddRoom from "./AddRoom";
 import Room from "./Room";
 import { Button, Form, Row, Stack } from "react-bootstrap";
 
-import { get_all_rooms, set_room, book_room } from "../../near/utils";
+import { get_all_rooms, book_room } from "../../near/utils";
 //...
 
 const Rooms = () => {
-  const [date, setDate] = useState("");
   const [rooms, setRooms] = useState([]);
   const [search, searchRooms] = useState([]);
 
@@ -32,24 +31,6 @@ const Rooms = () => {
     });
     searchRooms(search_room);
     console.log("GET SEARCH ROOM: ", search_room);
-  };
-  //...
-
-  //...
-  const addRoom = async (data) => {
-    await set_room(data).then((is_success) => {
-      if (!is_success) {
-        console.log("addRoom: ", is_success);
-        alert(
-          'Error "Already exists."' +
-            "\n owner: " +
-            window.accountId +
-            "\n room : " +
-            data.name
-        );
-      }
-      getRooms();
-    });
   };
   //...
 
@@ -80,10 +61,10 @@ const Rooms = () => {
   }, []);
   return (
     <>
-      <div className='d-flex justify-content-between align-items-center mb-4'>
+      {/* <div className='d-flex justify-content-between align-items-center mb-4'>
         <h1 className='fs-4 fw-bold mb-0'>Hotel Booking</h1>
         <AddRoom save={addRoom} />
-      </div>
+      </div> */}
 
       <Stack direction='horizontal' gap={3}>
         <Form.Control
@@ -103,8 +84,7 @@ const Rooms = () => {
         </Button>
       </Stack>
 
-      <Row xs={1} sm={2} lg={3} className='g-3  mb-5 g-xl-4 g-xxl-5'>
-        {/* {rooms.map((_room) => ( */}
+      <Row>
         {search.map((_room) => (
           <Room room={{ ..._room }} key={_room.id} booking={booking} />
         ))}

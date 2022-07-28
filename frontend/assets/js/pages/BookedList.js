@@ -1,25 +1,21 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
 import { Button, Table } from "react-bootstrap";
 import { get_booked_rooms, delete_booked_info } from "../near/utils";
 
-const RoomManagement = () => {
-  const params = useParams();
-  console.log("params.address=", params.address);
-
+const BookedList = () => {
   const [bookedRooms, setBookedRooms] = useState([]);
 
   const getBookedRooms = async () => {
     try {
-      setBookedRooms(await get_booked_rooms(params.address));
+      setBookedRooms(await get_booked_rooms(window.accountId));
     } catch (error) {
-      console.log({ error });
+      console.log("ERR_DISCONNECTED_WALLET");
     }
   };
 
   const triggerToAvailable = async (room_name, checkin_date) => {
     try {
-      console.log("in RoomManagement.js: ", room_name, checkin_date);
+      console.log("in BookedList.js: ", room_name, checkin_date);
       delete_booked_info(room_name, checkin_date).then((resp) => {
         getBookedRooms();
       });
@@ -34,9 +30,17 @@ const RoomManagement = () => {
   }, []);
 
   console.log("manage2: ", bookedRooms);
+
+  if (!window.accountId) {
+    return (
+      <>
+        <h2>Please connect NEAR wallet.</h2>
+      </>
+    );
+  }
   return (
     <>
-      <h2>Hotel owner: {params.address}</h2>
+      <h2>BOOKED LIST</h2>
       <Table striped bordered hover>
         <thead>
           <tr>
@@ -73,4 +77,4 @@ const RoomManagement = () => {
   );
 };
 
-export default RoomManagement;
+export default BookedList;

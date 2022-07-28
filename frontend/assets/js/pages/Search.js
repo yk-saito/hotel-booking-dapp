@@ -53,7 +53,15 @@ const Search = () => {
         {availableRooms.length === 0 ? (
           <h3>Sorry, no rooms found.</h3>
         ) : (
-          <h3>{availableRooms.length} found.</h3>
+          <>
+            {(window, accountId && <h3>{availableRooms.length} found.</h3>)}
+            {!window.accountId && (
+              <h3>
+                {availableRooms.length} found. To book, you must be connected to
+                the NEAR Wallet.
+              </h3>
+            )}
+          </>
         )}
       </div>
       <Row>

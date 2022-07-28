@@ -37,7 +37,11 @@ const Room = ({ room, booking }) => {
         <p>1 room / 1 bed / 1 night</p>
       </Col>
       <Col xs={2}>
-        <Button variant='outline-dark' onClick={triggerBooking}>
+        <Button
+          variant='outline-dark'
+          disabled={!window.accountId}
+          onClick={triggerBooking}
+        >
           Book for {utils.format.formatNearAmount(price)} NEAR
         </Button>
       </Col>

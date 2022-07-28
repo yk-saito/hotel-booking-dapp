@@ -73,9 +73,7 @@ const NavBar = () => {
                     Booked List
                   </NavDropdown.Item>
                   <NavDropdown.Divider />
-                  <NavDropdown.Item href='/search'>
-                    Back search page
-                  </NavDropdown.Item>
+                  <NavDropdown.Item href='/'>Home</NavDropdown.Item>
                 </NavDropdown>
               </>
             )}

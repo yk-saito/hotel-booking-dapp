@@ -1,21 +1,21 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import Room from "../components/hotelbooking/Room";
-import Form from "react-bootstrap/Form";
-import Col from "react-bootstrap/Col";
+import { useParams } from "react-router-dom";
 import Row from "react-bootstrap/Row";
-import Button from "react-bootstrap/Button";
 
 import { get_available_rooms, book_room } from "../near/utils";
+import Room from "../components/hotelbooking/Room";
+import FormDate from "../components/FormDate";
 
 const Search = () => {
-  const navigate = useNavigate();
-  const params = useParams();
-  const [date, setDate] = useState("");
+  const { date } = useParams();
   const [availableRooms, setAvailableRooms] = useState([]);
 
   const getAvailableRooms = async () => {
-    setAvailableRooms(await get_available_rooms(params.date));
+    console.log("Call getAvailableRooms");
+    console.log("date(URL): ", date);
+
+    setAvailableRooms(await get_available_rooms(date));
+    console.log("availableRoom: ", availableRooms);
   };
 
   //...
@@ -43,35 +43,19 @@ const Search = () => {
 
   useEffect(() => {
     getAvailableRooms();
-  }, []);
+  }, [date]);
 
   return (
     <>
-      <Form>
-        <Row
-          className='justify-content-center'
-          style={{ marginTop: "50px", marginBottom: "50px" }}
-        >
-          <Col xs='auto'>
-            <Form.Control
-              type='date'
-              htmlSize='10'
-              onChange={(e) => {
-                setDate(e.target.value);
-              }}
-            />
-          </Col>
-          <Col xs='auto'>
-            <Button
-              variant='secondary'
-              onClick={() => navigate(`/search/${date}`)}
-            >
-              Search
-            </Button>
-          </Col>
-        </Row>
-      </Form>
-
+      <FormDate />
+      <div className='text-center' style={{ margin: "20px" }}>
+        <h2>{date}</h2>
+        {availableRooms.length === 0 ? (
+          <h3>Sorry, no rooms found.</h3>
+        ) : (
+          <h3>{availableRooms.length} found.</h3>
+        )}
+      </div>
       <Row>
         {availableRooms.map((_room) => (
           <Room

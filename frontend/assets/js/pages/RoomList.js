@@ -12,7 +12,11 @@ const RoomList = () => {
   const [rooms, setRooms] = useState([]);
 
   const getRooms = async () => {
-    setRooms(await get_hotel_rooms(window.accountId));
+    try {
+      setRooms(await get_hotel_rooms(window.accountId));
+    } catch (error) {
+      console.log("ERR_DISCONNECTED_WALLET");
+    }
   };
 
   const addRoom = async (data) => {
@@ -36,6 +40,13 @@ const RoomList = () => {
     getRooms();
   }, []);
 
+  if (!window.accountId) {
+    return (
+      <>
+        <h2>Please connect NEAR wallet.</h2>
+      </>
+    );
+  }
   return (
     <>
       <Row>

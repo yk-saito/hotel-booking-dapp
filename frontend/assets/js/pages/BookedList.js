@@ -1,19 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
 import { Button, Table } from "react-bootstrap";
 import { get_booked_rooms, delete_booked_info } from "../near/utils";
 
 const BookedList = () => {
-  const params = useParams();
-  console.log("params.address=", params.address);
-
   const [bookedRooms, setBookedRooms] = useState([]);
 
   const getBookedRooms = async () => {
     try {
-      setBookedRooms(await get_booked_rooms(params.address));
+      setBookedRooms(await get_booked_rooms(window.accountId));
     } catch (error) {
-      console.log({ error });
+      console.log("ERR_DISCONNECTED_WALLET");
     }
   };
 
@@ -34,6 +30,14 @@ const BookedList = () => {
   }, []);
 
   console.log("manage2: ", bookedRooms);
+
+  if (!window.accountId) {
+    return (
+      <>
+        <h2>Please connect NEAR wallet.</h2>
+      </>
+    );
+  }
   return (
     <>
       <h2>BOOKED LIST</h2>

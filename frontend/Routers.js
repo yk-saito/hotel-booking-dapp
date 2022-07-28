@@ -12,8 +12,8 @@ const Routers = () => {
       <Routes>
         <Route path='/' element={<Home />} />
         <Route path='/search/:date' element={<Search />} />
-        <Route path='/room-list/:address' element={<RoomList />} />
-        <Route path='/booked-list/:address' element={<BookedList />} />
+        <Route path='/room-list' element={<RoomList />} />
+        <Route path='/booked-list' element={<BookedList />} />
       </Routes>
     </BrowserRouter>
   );

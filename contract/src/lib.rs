@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::vec;
 
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 // use near_sdk::collections::UnorderedSet;
@@ -13,6 +14,18 @@ pub struct BookedRoom {
     name: String,
     checkin_date: String,
     guest_id: AccountId,
+}
+
+#[derive(BorshDeserialize, BorshSerialize, Deserialize, Serialize, PartialEq, Debug)]
+#[serde(crate = "near_sdk::serde")]
+pub struct AvailableRoom {
+    owner_id: AccountId,
+    // hotel_name: String,
+    room_name: String,
+    image: String,
+    description: String,
+    location: String,
+    price: U128,
 }
 
 #[derive(BorshDeserialize, BorshSerialize)]
@@ -108,16 +121,42 @@ impl HotelBooking {
             .expect("ERR_NOT_FOUND_DATE");
     }
 
-    pub fn get_all_rooms(&self) -> Vec<JsonRoom> {
-        let mut all_rooms = vec![];
+    // pub fn get_all_rooms(&self) -> Vec<JsonRoom> {
+    //     let mut all_rooms = vec![];
+
+    //     for (_, hotel) in self.hotels.iter() {
+    //         for (_, room) in hotel {
+    //             let json_room = self.create_json_room(room);
+    //             all_rooms.push(json_room);
+    //         }
+    //     }
+    //     all_rooms
+    // }
+
+    pub fn get_available_rooms(&self, checkin_date: String) -> Vec<AvailableRoom> {
+        // for 全ホテル
+        let mut available_rooms = vec![];
 
         for (_, hotel) in self.hotels.iter() {
             for (_, room) in hotel {
-                let json_room = self.create_json_room(room);
-                all_rooms.push(json_room);
+                match room.booked_info.get(&checkin_date) {
+                    Some(_) => continue,
+                    None => {
+                        let available_room = AvailableRoom {
+                            owner_id: room.owner_id.clone(),
+                            // hotel_name: String,
+                            room_name: room.name.clone(),
+                            image: room.image.clone(),
+                            description: room.description.clone(),
+                            location: room.location.clone(),
+                            price: room.price,
+                        };
+                        available_rooms.push(available_room);
+                    }
+                }
             }
         }
-        all_rooms
+        available_rooms
     }
 
     pub fn get_hotel_rooms(&self, owner_id: AccountId) -> Vec<JsonRoom> {
@@ -247,7 +286,7 @@ mod tests {
     }
 
     #[test]
-    fn set_then_get_room() {
+    fn owner_set_then_get_room() {
         let mut context = get_context(false);
         // Initialize the mocked blockchain
         testing_env!(context.build());
@@ -266,18 +305,14 @@ mod tests {
         );
         assert_eq!(is_success, true);
 
-        let all_rooms = contract.get_all_rooms();
+        let owner_id = env::signer_account_id();
+        let all_rooms = contract.get_hotel_rooms(owner_id);
         // println!("\nALL_ROOMS: {:?}\n", all_rooms);
         assert_eq!(all_rooms.len(), 1);
-
-        let owner_id = env::signer_account_id();
-        let rooms = contract.get_hotel_rooms(owner_id);
-        // println!("\nHOTEL_ROOMS: {:?}\n", hotel_rooms);
-        assert_eq!(rooms.len(), 1);
     }
 
     #[test]
-    fn set_then_get_rooms() {
+    fn owner_set_then_get_rooms() {
         let mut context = get_context(false);
         testing_env!(context.build());
         testing_env!(context.predecessor_account_id(accounts(0)).build());
@@ -300,14 +335,18 @@ mod tests {
             near_to_yocto(10),
         );
 
-        let all_rooms = contract.get_all_rooms();
-        // println!("\nALL_ROOMS: {:?}\n", all_rooms);
-        assert_eq!(all_rooms.len(), 2);
-
         let owner_id = env::signer_account_id();
         let rooms = contract.get_hotel_rooms(owner_id);
         // println!("\nHOTEL_ROOMS: {:?}\n", rooms);
         assert_eq!(rooms.len(), 2);
+    }
+
+    #[test]
+    fn owner_empty_get_rooms() {
+        let mut context = get_context(true);
+        testing_env!(context.build());
+        testing_env!(context.predecessor_account_id(accounts(0)).build());
+        let contract = HotelBooking::default();
 
         // ここで使用するaccountsの指定に注意。環境設定でsigner_account_idにaccounts(1)を指定しているので、それ以外（〜6)を指定すること。
         let error_owner_id = accounts(2);
@@ -316,18 +355,8 @@ mod tests {
     }
 
     #[test]
-    fn empty_get_rooms() {
-        let mut context = get_context(true);
-        testing_env!(context.build());
-        testing_env!(context.predecessor_account_id(accounts(0)).build());
-        let contract = HotelBooking::default();
-        let rooms = contract.get_all_rooms();
-        assert_eq!(rooms.len(), 0);
-    }
-
-    #[test]
-    // hotel owner: alice(accounts(0))
-    // booking guest: bob(accounts(1))
+    // hotel owner: bob(accounts(1))
+    // booking guest: charlie(accounts(2))
     fn book_room_then_get_booked_list() {
         let mut context = get_context(false);
 
@@ -356,15 +385,23 @@ mod tests {
             "USA".to_string(),
             near_to_yocto(1),
         );
-        let rooms = contract.get_all_rooms();
+        let rooms = contract.get_hotel_rooms(hotel_owner_id.clone());
         assert_eq!(rooms.len(), 2);
+
+        // Search check
+        testing_env!(context.signer_account_id(accounts(2)).build());
+        let checkin_date: String = "2222-01-01".to_string();
+        let available_rooms = contract.get_available_rooms(checkin_date.clone());
+        println!("\n\nAVAILABLE_ROOM: {:?}\n\n", available_rooms);
+        assert_eq!(available_rooms.len(), 2);
 
         // let available_room = contract.get_json_room(hotel_owner_id.clone(), room_name.clone());
         // assert_eq!(available_room.status, RoomStatus::Available);
+
         let is_success = contract.book_room(
             hotel_owner_id.clone(),
             room_name.clone(),
-            "2022-08-20".to_string(),
+            checkin_date.clone(),
         );
         assert_eq!(is_success, true);
         // let booking_room = contract.get_json_room(hotel_owner_id.clone(), room_name);
@@ -379,6 +416,13 @@ mod tests {
         let booked_rooms = contract.get_booked_rooms(hotel_owner_id.clone());
         println!("{:?}", booked_rooms);
         assert_eq!(booked_rooms.len(), 1);
+        assert_eq!(booked_rooms[0].checkin_date, checkin_date);
+        println!(
+            "guest{:?} signer{:?}",
+            booked_rooms[0].guest_id,
+            env::signer_account_id()
+        );
+        assert_eq!(booked_rooms[0].guest_id, accounts(2));
     }
 
     #[test]

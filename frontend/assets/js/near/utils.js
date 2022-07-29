@@ -111,7 +111,6 @@ export async function is_available(owner_id, name) {
     owner_id: owner_id,
     name: name,
   });
-  console.log("in is_available RET: ", ret);
   return ret;
 }
 
@@ -119,12 +118,13 @@ export function set_room(room) {
   room.price = parseNearAmount(room.price + "");
   let is_success = window.contract.set_room({
     name: room.name,
-    check_in: room.checkIn,
-    check_out: room.checkOut,
     image: room.image,
+    beds: Number(room.beds),
     description: room.description,
     location: room.location,
     price: room.price,
+    check_in: room.checkIn,
+    check_out: room.checkOut,
   });
   return is_success;
 }

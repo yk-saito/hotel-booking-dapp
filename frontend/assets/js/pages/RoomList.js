@@ -64,6 +64,7 @@ const RoomList = () => {
           <tr>
             <th scope='col'>Room Name</th>
             <th scope='col'>Image</th>
+            <th scope='col'>Beds</th>
             <th scope='col'>Description</th>
             <th scope='col'>Location</th>
             <th scope='col'>Price per night</th>
@@ -79,6 +80,7 @@ const RoomList = () => {
                 <td>
                   <img src={_room.image} width='100' />
                 </td>
+                <td>{_room.beds}</td>
                 <td>{_room.description}</td>
                 <td>{_room.location}</td>
                 <td>{utils.format.formatNearAmount(_room.price)} NEAR</td>
@@ -95,6 +97,7 @@ const RoomList = () => {
                 <td>
                   <img src={_room.image} width='100' />
                 </td>
+                <td>{_room.beds}</td>
                 <td>{_room.description}</td>
                 <td>{_room.location}</td>
                 <td>{utils.format.formatNearAmount(_room.price)} NEAR</td>

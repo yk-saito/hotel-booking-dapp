@@ -24,13 +24,13 @@ pub enum UsageStatus {
 #[serde(crate = "near_sdk::serde")]
 pub struct ResigteredRoom {
     name: String,
-    use_time: UseTime,
     image: String,
+    beds: u8,
     description: String,
     location: String,
     price: U128,
+    use_time: UseTime,
     status: UsageStatus,
-    owner_id: AccountId,
 }
 
 #[derive(BorshDeserialize, BorshSerialize, Deserialize, Serialize, Debug)]
@@ -47,22 +47,23 @@ pub struct BookedRoom {
 pub struct AvailableRoom {
     owner_id: AccountId,
     name: String,
-    use_time: UseTime,
     image: String,
+    beds: u8,
     description: String,
     location: String,
     price: U128,
+    use_time: UseTime,
 }
 
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct Room {
     name: String,
-    use_time: UseTime,
     image: String,
+    beds: u8,
     description: String,
     location: String,
     price: U128,
-    owner_id: AccountId,
+    use_time: UseTime,
     status: UsageStatus,
     booked_info: HashMap<String, AccountId>, // checkin-date: guest_id
 }
@@ -86,12 +87,14 @@ impl HotelBooking {
     pub fn set_room(
         &mut self,
         name: String,
-        check_in: String,
-        check_out: String,
+
         image: String,
+        beds: u8,
         description: String,
         location: String,
         price: U128,
+        check_in: String,
+        check_out: String,
     ) -> bool {
         let owner_id = env::signer_account_id();
         let use_time = UseTime {
@@ -100,13 +103,15 @@ impl HotelBooking {
         };
         let new_room = Room {
             name,
-            use_time: use_time,
+
             image,
+            beds,
             description,
             location,
             price,
+            use_time: use_time,
             status: UsageStatus::Available,
-            owner_id: owner_id.clone(),
+            // owner_id: owner_id.clone(),
             booked_info: HashMap::new(),
         };
 
@@ -164,7 +169,7 @@ impl HotelBooking {
         // for 全ホテル
         let mut available_rooms = vec![];
 
-        for (_, hotel) in self.hotels.iter() {
+        for (owner_id, hotel) in self.hotels.iter() {
             for (_, room) in hotel {
                 match room.booked_info.get(&check_in_date) {
                     Some(_) => continue,
@@ -174,13 +179,14 @@ impl HotelBooking {
                             check_out: room.use_time.check_out.clone(),
                         };
                         let available_room = AvailableRoom {
-                            owner_id: room.owner_id.clone(),
+                            owner_id: owner_id.clone(),
                             name: room.name.clone(),
-                            use_time: use_time,
+                            beds: room.beds,
                             image: room.image.clone(),
                             description: room.description.clone(),
                             location: room.location.clone(),
                             price: room.price,
+                            use_time: use_time,
                         };
                         available_rooms.push(available_room);
                     }
@@ -298,13 +304,14 @@ impl HotelBooking {
 
         let resigtered_room = ResigteredRoom {
             name: room.name.clone(),
-            use_time: use_time,
+            beds: room.beds,
             image: room.image.clone(),
             description: room.description.clone(),
             location: room.location.clone(),
             price: room.price,
+            use_time: use_time,
             status: status,
-            owner_id: room.owner_id.clone(),
+            // owner_id: room.owner_id.clone(),
             // booked_date: booked_date,
         };
         resigtered_room
@@ -345,13 +352,14 @@ mod tests {
 
         let mut contract = HotelBooking::default();
         let is_success = contract.set_room(
-            "14:00".to_string(),
-            "10:00".to_string(),
             "JAPAN_room".to_string(),
             "test.img".to_string(),
+            1,
             "This is JAPAN room".to_string(),
             "Japan".to_string(),
             near_to_yocto(10),
+            "14:00".to_string(),
+            "10:00".to_string(),
         );
         assert_eq!(is_success, true);
 
@@ -370,21 +378,23 @@ mod tests {
         let mut contract = HotelBooking::default();
         let _ = contract.set_room(
             "JAPAN_room".to_string(),
-            "14:00".to_string(),
-            "10:00".to_string(),
             "test.img".to_string(),
+            1,
             "This is JAPAN room".to_string(),
             "Japan".to_string(),
             near_to_yocto(10),
+            "14:00".to_string(),
+            "10:00".to_string(),
         );
         let _ = contract.set_room(
             "USA_room".to_string(),
-            "14:00".to_string(),
-            "10:00".to_string(),
             "test2.img".to_string(),
+            2,
             "This is USA room".to_string(),
             "USA".to_string(),
             near_to_yocto(10),
+            "14:00".to_string(),
+            "10:00".to_string(),
         );
 
         let owner_id = env::signer_account_id();
@@ -423,21 +433,23 @@ mod tests {
         let mut contract = HotelBooking::default();
         let _ = contract.set_room(
             name.clone(),
-            "14:00".to_string(),
-            "10:00".to_string(),
             "test.img".to_string(),
+            1,
             "This is JAPAN room".to_string(),
             "Japan".to_string(),
             near_to_yocto(1),
+            "14:00".to_string(),
+            "10:00".to_string(),
         );
         let _ = contract.set_room(
             "USA_room".to_string(),
-            "14:00".to_string(),
-            "10:00".to_string(),
             "test2.img".to_string(),
+            2,
             "This is USA room".to_string(),
             "USA".to_string(),
             near_to_yocto(1),
+            "14:00".to_string(),
+            "10:00".to_string(),
         );
         let rooms = contract.get_hotel_rooms(hotel_owner_id.clone());
         assert_eq!(rooms.len(), 2);
@@ -483,21 +495,23 @@ mod tests {
         let mut contract = HotelBooking::default();
         let _ = contract.set_room(
             "JAPAN_room".to_string(),
-            "14:00".to_string(),
-            "10:00".to_string(),
             "test.img".to_string(),
+            1,
             "This is JAPAN room".to_string(),
             "Japan".to_string(),
             near_to_yocto(10),
+            "14:00".to_string(),
+            "10:00".to_string(),
         );
         let is_success = contract.set_room(
             "JAPAN_room".to_string(),
-            "14:00".to_string(),
-            "10:00".to_string(),
             "test.img".to_string(),
+            2,
             "This is JAPAN room".to_string(),
             "Japan".to_string(),
             near_to_yocto(10),
+            "14:00".to_string(),
+            "10:00".to_string(),
         );
         assert_eq!(is_success, false);
 

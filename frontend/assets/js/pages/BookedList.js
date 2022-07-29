@@ -18,23 +18,23 @@ const BookedList = () => {
     }
   };
 
-  const triggerCheckIn = async (room_name, check_in_date) => {
-    let isAvailable = await is_available(window.accountId, room_name);
+  const triggerCheckIn = async (name, check_in_date) => {
+    let isAvailable = await is_available(window.accountId, name);
     if (isAvailable == false) {
       alert('Error "Someone already stay."');
       return;
     }
     try {
-      change_status_to_stay(room_name, check_in_date).then((resp) => {
+      change_status_to_stay(name, check_in_date).then((resp) => {
         getBookedRooms();
       });
     } catch (error) {
       console.log({ error });
     }
   };
-  const triggerCheckOut = async (room_name, check_in_date) => {
+  const triggerCheckOut = async (name, check_in_date) => {
     try {
-      change_status_to_available(room_name, check_in_date).then((resp) => {
+      change_status_to_available(name, check_in_date).then((resp) => {
         getBookedRooms();
       });
     } catch (error) {

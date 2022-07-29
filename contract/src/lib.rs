@@ -46,7 +46,7 @@ pub struct BookedRoom {
 #[serde(crate = "near_sdk::serde")]
 pub struct AvailableRoom {
     owner_id: AccountId,
-    room_name: String,
+    name: String,
     use_time: UseTime,
     image: String,
     description: String,
@@ -131,10 +131,10 @@ impl HotelBooking {
         true
     }
 
-    pub fn change_status_to_available(&mut self, room_name: String, check_in_date: String) {
+    pub fn change_status_to_available(&mut self, name: String, check_in_date: String) {
         let owner_id = env::signer_account_id();
         let hotel = self.hotels.get_mut(&owner_id).expect("ERR_NOT_FOUND_HOTEL");
-        let room = hotel.get_mut(&room_name).expect("ERR_NOT_FOUND_ROOM");
+        let room = hotel.get_mut(&name).expect("ERR_NOT_FOUND_ROOM");
 
         room.booked_info
             .remove(&check_in_date)
@@ -143,17 +143,17 @@ impl HotelBooking {
         room.status = UsageStatus::Available;
     }
 
-    pub fn change_status_to_stay(&mut self, room_name: String, check_in_date: String) {
+    pub fn change_status_to_stay(&mut self, name: String, check_in_date: String) {
         let owner_id = env::signer_account_id();
         let hotel = self.hotels.get_mut(&owner_id).expect("ERR_NOT_FOUND_HOTEL");
-        let room = hotel.get_mut(&room_name).expect("ERR_NOT_FOUND_ROOM");
+        let room = hotel.get_mut(&name).expect("ERR_NOT_FOUND_ROOM");
 
         room.status = UsageStatus::Stay { check_in_date };
     }
 
-    pub fn is_available(&self, owner_id: AccountId, room_name: String) -> bool {
+    pub fn is_available(&self, owner_id: AccountId, name: String) -> bool {
         let hotel = self.hotels.get(&owner_id).expect("ERR_NOT_FOUND_HOTEL");
-        let room = hotel.get(&room_name).expect("ERR_NOT_FOUND_ROOM");
+        let room = hotel.get(&name).expect("ERR_NOT_FOUND_ROOM");
         if room.status != UsageStatus::Available {
             return false;
         }
@@ -175,7 +175,7 @@ impl HotelBooking {
                         };
                         let available_room = AvailableRoom {
                             owner_id: room.owner_id.clone(),
-                            room_name: room.name.clone(),
+                            name: room.name.clone(),
                             use_time: use_time,
                             image: room.image.clone(),
                             description: room.description.clone(),
@@ -203,9 +203,9 @@ impl HotelBooking {
         }
     }
 
-    pub fn get_resigtered_room(&self, owner_id: AccountId, room_name: String) -> ResigteredRoom {
+    pub fn get_resigtered_room(&self, owner_id: AccountId, name: String) -> ResigteredRoom {
         let hotel = self.hotels.get(&owner_id).expect("ERR_NOT_FOUND_HOTEL");
-        let room = hotel.get(&room_name).expect("ERR_NOT_FOUND_ROOM");
+        let room = hotel.get(&name).expect("ERR_NOT_FOUND_ROOM");
         let resigtered_room = self.create_resigtered_room(&room);
 
         println!("\n\nROOM: {:?}\n\n", resigtered_room);
@@ -254,20 +254,13 @@ impl HotelBooking {
         return booking ResigteredRoom
     */
     #[payable]
-    pub fn book_room(
-        &mut self,
-        owner_id: AccountId,
-        room_name: String,
-        check_in_date: String,
-    ) -> bool {
+    pub fn book_room(&mut self, owner_id: AccountId, name: String, check_in_date: String) -> bool {
         // 予約する部屋を取得
         let hotel = self
             .hotels
             .get_mut(&owner_id.clone())
             .expect("ERR_NOT_FOUND_HOTEL");
-        let room = hotel
-            .get_mut(&room_name.clone())
-            .expect("ERR_NOT_FOUND_ROOM");
+        let room = hotel.get_mut(&name.clone()).expect("ERR_NOT_FOUND_ROOM");
 
         let account_id = env::signer_account_id();
         let deposit = env::attached_deposit();
@@ -426,10 +419,10 @@ mod tests {
         testing_env!(context.predecessor_account_id(accounts(0)).build());
 
         let hotel_owner_id = env::signer_account_id();
-        let room_name = String::from("JAPAN_room");
+        let name = String::from("JAPAN_room");
         let mut contract = HotelBooking::default();
         let _ = contract.set_room(
-            room_name.clone(),
+            name.clone(),
             "14:00".to_string(),
             "10:00".to_string(),
             "test.img".to_string(),
@@ -456,14 +449,11 @@ mod tests {
         println!("\n\nAVAILABLE_ROOM: {:?}\n\n", available_rooms);
         assert_eq!(available_rooms.len(), 2);
 
-        // let available_room = contract.get_resigtered_room(hotel_owner_id.clone(), room_name.clone());
+        // let available_room = contract.get_resigtered_room(hotel_owner_id.clone(), name.clone());
         // assert_eq!(available_room.status, RoomStatus::Available);
 
-        let is_success = contract.book_room(
-            hotel_owner_id.clone(),
-            room_name.clone(),
-            check_in_date.clone(),
-        );
+        let is_success =
+            contract.book_room(hotel_owner_id.clone(), name.clone(), check_in_date.clone());
         assert_eq!(is_success, true);
 
         let booked_rooms = contract.get_booked_rooms(hotel_owner_id.clone());
@@ -480,7 +470,7 @@ mod tests {
         //TEST
         // ホテルのオーナーにアカウントを切り替え
         testing_env!(context.signer_account_id(accounts(1)).build());
-        contract.change_status_to_stay(room_name.clone(), check_in_date.clone());
+        contract.change_status_to_stay(name.clone(), check_in_date.clone());
         let rooms = contract.get_hotel_rooms(hotel_owner_id.clone());
     }
 

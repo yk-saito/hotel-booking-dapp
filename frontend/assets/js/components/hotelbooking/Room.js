@@ -8,7 +8,6 @@ import Image from "react-bootstrap/Image";
 
 const Room = ({ room, booking }) => {
   const {
-    id,
     room_name,
     use_time,
     description,

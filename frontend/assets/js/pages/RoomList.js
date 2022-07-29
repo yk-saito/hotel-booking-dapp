@@ -62,7 +62,6 @@ const RoomList = () => {
       <Table striped bordered hover>
         <thead>
           <tr>
-            <th scope='col'>#</th>
             <th scope='col'>Room Name</th>
             <th scope='col'>Image</th>
             <th scope='col'>Description</th>
@@ -73,10 +72,9 @@ const RoomList = () => {
           </tr>
         </thead>
         {rooms.map((_room) => (
-          <tbody key={`${_room.id}`}>
+          <tbody key={`${_room.name}`}>
             {_room.status === "Available" && (
               <tr>
-                <th scope='row'>{_room.id}</th>
                 <td>{_room.name}</td>
                 <td>
                   <img src={_room.image} width='100' />
@@ -93,7 +91,6 @@ const RoomList = () => {
             )}
             {_room.status !== "Available" && (
               <tr style={{ backgroundColor: "#FFC0CB" }}>
-                <th scope='row'>{_room.id}</th>
                 <td>{_room.name}</td>
                 <td>
                   <img src={_room.image} width='100' />

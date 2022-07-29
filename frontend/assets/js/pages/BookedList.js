@@ -34,7 +34,6 @@ const BookedList = () => {
   };
   const triggerCheckOut = async (room_name, check_in_date) => {
     try {
-      console.log("in BookedList.js: ", room_name, check_in_date);
       change_status_to_available(room_name, check_in_date).then((resp) => {
         getBookedRooms();
       });
@@ -45,10 +44,7 @@ const BookedList = () => {
 
   useEffect(() => {
     getBookedRooms();
-    console.log("manage: ", bookedRooms);
   }, []);
-
-  console.log("manage2: ", bookedRooms);
 
   if (!window.accountId) {
     return (
@@ -63,7 +59,6 @@ const BookedList = () => {
       <Table striped bordered hover>
         <thead>
           <tr>
-            <th scope='col'>#</th>
             <th scope='col'>Room Name</th>
             <th scope='col'>Check In</th>
             <th scope='col'>GuestID</th>
@@ -71,9 +66,8 @@ const BookedList = () => {
           </tr>
         </thead>
         {bookedRooms.map((_room) => (
-          <tbody key={`${_room.name}${_room.check_in_date}`}>
+          <tbody key={_room.name + _room.check_in_date}>
             <tr>
-              <th scope='row'>{_room.id}</th>
               <td>{_room.name}</td>
               <td>{_room.check_in_date}</td>
               <td>{_room.guest_id}</td>

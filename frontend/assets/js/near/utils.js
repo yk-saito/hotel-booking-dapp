@@ -34,7 +34,6 @@ export async function initContract() {
     nearConfig.contractName,
     {
       viewMethods: [
-        // "get_all_rooms",
         "get_available_rooms",
         "get_hotel_rooms",
         "get_room",
@@ -117,12 +116,8 @@ export async function is_available(owner_id, room_name) {
 }
 
 export function set_room(room) {
-  console.log(room);
-  const timestamp = Date.now().toString();
-  console.log("timestamp: ", timestamp);
   room.price = parseNearAmount(room.price + "");
   let is_success = window.contract.set_room({
-    timestamp: timestamp,
     name: room.name,
     check_in: room.checkIn,
     check_out: room.checkOut,

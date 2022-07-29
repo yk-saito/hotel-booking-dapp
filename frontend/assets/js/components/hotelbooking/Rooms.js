@@ -86,7 +86,11 @@ const Rooms = () => {
 
       <Row>
         {search.map((_room) => (
-          <Room room={{ ..._room }} key={_room.id} booking={booking} />
+          <Room
+            room={{ ..._room }}
+            key={_room.room_name + _room.check_in_date}
+            booking={booking}
+          />
         ))}
       </Row>
     </>

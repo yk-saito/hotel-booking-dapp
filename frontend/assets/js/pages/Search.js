@@ -19,10 +19,10 @@ const Search = () => {
   };
 
   //...
-  const booking = async (owner_id, room_name, price) => {
+  const booking = async (owner_id, name, price) => {
     let is_success = book_room({
       owner_id,
-      room_name,
+      name,
       date,
       price,
     });
@@ -33,7 +33,7 @@ const Search = () => {
     //   if (!is_success) {
     //     alert('Error "Please try again."');
     //   } else {
-    //     alert("Booked!" + "\nowner: " + owner_id + "\nroom name: " + room_name);
+    //     alert("Booked!" + "\nowner: " + owner_id + "\nroom name: " + name);
     //   }
     //   // getRooms();
     // });
@@ -68,7 +68,7 @@ const Search = () => {
         {availableRooms.map((_room) => (
           <Room
             room={{ ..._room }}
-            key={_room.owner_id + _room.room_name}
+            key={_room.owner_id + _room.name}
             booking={booking}
           />
         ))}

@@ -8,18 +8,18 @@ import Image from "react-bootstrap/Image";
 
 const Room = ({ room, booking }) => {
   const {
-    id,
-    room_name,
+    owner_id,
+    name,
+    image,
+    beds,
     description,
     location,
-    image,
     price,
-    owner_id,
-    status,
+    use_time,
   } = room;
 
   const triggerBooking = () => {
-    booking(owner_id, room_name, price);
+    booking(owner_id, name, price);
     console.log("Called booking in triggerBooking");
   };
 
@@ -27,16 +27,24 @@ const Room = ({ room, booking }) => {
     <Row style={{ padding: "20px" }}>
       <Col xs={1}></Col>
       <Col xs={2}>
-        <Image src={image} alt={room_name} width='300' fluid />
+        <Image src={image} alt={name} width='300' fluid />
       </Col>
-      <Col xs={7}>
-        <h3>HOTEL NAME</h3>
-        <h4>{room_name}</h4>
+      <Col xs={4}>
+        <h4>{owner_id}</h4>
+        <h4>{name}</h4>
         <p>{description}</p>
         <h5>{location}</h5>
-        <p>1 room / 1 bed / 1 night</p>
       </Col>
       <Col xs={2}>
+        <p>Check in</p>
+        <h6>{use_time.check_in}</h6>
+        <p>Check out</p>
+        <h6>{use_time.check_out}</h6>
+      </Col>
+      <Col xs={3}>
+        <p>Beds</p>
+        <h6>{beds}</h6>
+        <h6>1 night</h6>
         <Button
           variant='outline-dark'
           disabled={!window.accountId}

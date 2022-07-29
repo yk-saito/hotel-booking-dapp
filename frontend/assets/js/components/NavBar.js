@@ -64,7 +64,7 @@ const NavBar = () => {
                   title='For hotel owners'
                   id='collasible-nav-dropdown'
                 >
-                  <NavDropdown.Item href={`/room-list`}>
+                  <NavDropdown.Item onClick={() => navigate(`/room-list`)}>
                     Room List
                   </NavDropdown.Item>
                   <NavDropdown.Item onClick={() => navigate(`/booked-list`)}>

@@ -7,13 +7,43 @@ use near_sdk::json_types::U128;
 use near_sdk::serde::{Deserialize, Serialize};
 use near_sdk::{env, near_bindgen, AccountId, Promise};
 
-#[derive(BorshDeserialize, BorshSerialize, Deserialize, Serialize, PartialEq, Debug)]
+#[derive(Serialize, Deserialize, BorshSerialize, BorshDeserialize, PartialEq, Debug)]
+#[serde(crate = "near_sdk::serde")]
+pub struct UseTime {
+    check_in: String,
+    check_out: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, BorshSerialize, BorshDeserialize, PartialEq)]
+#[serde(crate = "near_sdk::serde")]
+pub enum UsageStatus {
+    Available,
+    Stay { check_in_date: String },
+}
+
+#[derive(Serialize, Deserialize, Debug, BorshSerialize, BorshDeserialize)]
+#[serde(crate = "near_sdk::serde")]
+pub struct ResigteredRoom {
+    id: String, // Timestamp
+    name: String,
+    use_time: UseTime,
+    image: String,
+    description: String,
+    location: String,
+    price: U128,
+    status: UsageStatus,
+    owner_id: AccountId,
+    // booked_date: Vec<String>, // 日付でサーチするときに欲しい
+}
+
+#[derive(BorshDeserialize, BorshSerialize, Deserialize, Serialize, Debug)]
 #[serde(crate = "near_sdk::serde")]
 pub struct BookedRoom {
     id: String,
     name: String,
-    checkin_date: String,
+    check_in_date: String,
     guest_id: AccountId,
+    status: UsageStatus,
 }
 
 #[derive(BorshDeserialize, BorshSerialize, Deserialize, Serialize, PartialEq, Debug)]
@@ -22,6 +52,7 @@ pub struct AvailableRoom {
     owner_id: AccountId,
     // hotel_name: String,
     room_name: String,
+    use_time: UseTime,
     image: String,
     description: String,
     location: String,
@@ -32,25 +63,14 @@ pub struct AvailableRoom {
 pub struct Room {
     id: String, // Timestamp
     name: String,
+    use_time: UseTime,
     image: String,
     description: String,
     location: String,
     price: U128,
     owner_id: AccountId,
+    status: UsageStatus,
     booked_info: HashMap<String, AccountId>, // checkin-date: guest_id
-}
-
-#[derive(Serialize, Deserialize, Debug, BorshSerialize, BorshDeserialize)]
-#[serde(crate = "near_sdk::serde")]
-pub struct JsonRoom {
-    id: String, // Timestamp
-    name: String,
-    image: String,
-    description: String,
-    location: String,
-    price: U128,
-    owner_id: AccountId,
-    booked_date: Vec<String>, // 日付でサーチするときに欲しい
 }
 
 #[near_bindgen]
@@ -73,19 +93,27 @@ impl HotelBooking {
         &mut self,
         timestamp: String,
         name: String,
+        check_in: String,
+        check_out: String,
         image: String,
         description: String,
         location: String,
         price: U128,
     ) -> bool {
         let owner_id = env::signer_account_id();
+        let use_time = UseTime {
+            check_in,
+            check_out,
+        };
         let new_room = Room {
             id: timestamp,
             name,
+            use_time: use_time,
             image,
             description,
             location,
             price,
+            status: UsageStatus::Available,
             owner_id: owner_id.clone(),
             booked_info: HashMap::new(),
         };
@@ -111,41 +139,53 @@ impl HotelBooking {
         true
     }
 
-    pub fn delete_booked_info(&mut self, room_name: String, checkin_date: String) {
+    pub fn change_status_to_available(&mut self, room_name: String, check_in_date: String) {
         let owner_id = env::signer_account_id();
         let hotel = self.hotels.get_mut(&owner_id).expect("ERR_NOT_FOUND_HOTEL");
         let room = hotel.get_mut(&room_name).expect("ERR_NOT_FOUND_ROOM");
 
         room.booked_info
-            .remove(&checkin_date)
+            .remove(&check_in_date)
             .expect("ERR_NOT_FOUND_DATE");
+
+        room.status = UsageStatus::Available;
     }
 
-    // pub fn get_all_rooms(&self) -> Vec<JsonRoom> {
-    //     let mut all_rooms = vec![];
+    pub fn change_status_to_stay(&mut self, room_name: String, check_in_date: String) {
+        let owner_id = env::signer_account_id();
+        let hotel = self.hotels.get_mut(&owner_id).expect("ERR_NOT_FOUND_HOTEL");
+        let room = hotel.get_mut(&room_name).expect("ERR_NOT_FOUND_ROOM");
 
-    //     for (_, hotel) in self.hotels.iter() {
-    //         for (_, room) in hotel {
-    //             let json_room = self.create_json_room(room);
-    //             all_rooms.push(json_room);
-    //         }
-    //     }
-    //     all_rooms
-    // }
+        room.status = UsageStatus::Stay { check_in_date };
+    }
 
-    pub fn get_available_rooms(&self, checkin_date: String) -> Vec<AvailableRoom> {
+    pub fn is_available(&self, owner_id: AccountId, room_name: String) -> bool {
+        let hotel = self.hotels.get(&owner_id).expect("ERR_NOT_FOUND_HOTEL");
+        let room = hotel.get(&room_name).expect("ERR_NOT_FOUND_ROOM");
+        if room.status != UsageStatus::Available {
+            return false;
+        }
+        true
+    }
+
+    pub fn get_available_rooms(&self, check_in_date: String) -> Vec<AvailableRoom> {
         // for 全ホテル
         let mut available_rooms = vec![];
 
         for (_, hotel) in self.hotels.iter() {
             for (_, room) in hotel {
-                match room.booked_info.get(&checkin_date) {
+                match room.booked_info.get(&check_in_date) {
                     Some(_) => continue,
                     None => {
+                        let use_time = UseTime {
+                            check_in: room.use_time.check_in.clone(),
+                            check_out: room.use_time.check_out.clone(),
+                        };
                         let available_room = AvailableRoom {
                             owner_id: room.owner_id.clone(),
                             // hotel_name: String,
                             room_name: room.name.clone(),
+                            use_time: use_time,
                             image: room.image.clone(),
                             description: room.description.clone(),
                             location: room.location.clone(),
@@ -159,12 +199,12 @@ impl HotelBooking {
         available_rooms
     }
 
-    pub fn get_hotel_rooms(&self, owner_id: AccountId) -> Vec<JsonRoom> {
+    pub fn get_hotel_rooms(&self, owner_id: AccountId) -> Vec<ResigteredRoom> {
         let mut hotel_rooms = vec![];
         match self.hotels.get(&owner_id) {
             Some(hotel) => {
                 for (_, room) in hotel {
-                    hotel_rooms.push(self.create_json_room(room));
+                    hotel_rooms.push(self.create_resigtered_room(room));
                 }
                 hotel_rooms
             }
@@ -172,13 +212,13 @@ impl HotelBooking {
         }
     }
 
-    pub fn get_json_room(&self, owner_id: AccountId, room_name: String) -> JsonRoom {
+    pub fn get_resigtered_room(&self, owner_id: AccountId, room_name: String) -> ResigteredRoom {
         let hotel = self.hotels.get(&owner_id).expect("ERR_NOT_FOUND_HOTEL");
         let room = hotel.get(&room_name).expect("ERR_NOT_FOUND_ROOM");
-        let json_room = self.create_json_room(&room);
+        let resigtered_room = self.create_resigtered_room(&room);
 
-        println!("\n\nROOM: {:?}\n\n", json_room);
-        json_room
+        println!("\n\nROOM: {:?}\n\n", resigtered_room);
+        resigtered_room
     }
 
     pub fn get_booked_rooms(&self, owner_id: AccountId) -> Vec<BookedRoom> {
@@ -191,11 +231,25 @@ impl HotelBooking {
                         continue;
                     }
                     for (date, guest_id) in room.booked_info.clone() {
+                        let status: UsageStatus;
+                        match room.status {
+                            UsageStatus::Available => status = UsageStatus::Available,
+                            UsageStatus::Stay { ref check_in_date } => {
+                                if date == check_in_date.clone() {
+                                    status = UsageStatus::Stay {
+                                        check_in_date: check_in_date.clone(),
+                                    }
+                                } else {
+                                    status = UsageStatus::Available;
+                                }
+                            }
+                        }
                         let booked_room = BookedRoom {
                             id: room.id.clone(),
                             name: room.name.clone(),
-                            checkin_date: date,
+                            check_in_date: date,
                             guest_id: guest_id,
+                            status: status,
                         };
                         booked_rooms.push(booked_room);
                     }
@@ -207,21 +261,21 @@ impl HotelBooking {
     }
 
     /*
-        return booking JsonRoom
+        return booking ResigteredRoom
     */
     #[payable]
     pub fn book_room(
         &mut self,
         owner_id: AccountId,
         room_name: String,
-        checkin_date: String,
+        check_in_date: String,
     ) -> bool {
         // 予約する部屋を取得
-        let mut hotel = self
+        let hotel = self
             .hotels
             .get_mut(&owner_id.clone())
             .expect("ERR_NOT_FOUND_HOTEL");
-        let mut room = hotel
+        let room = hotel
             .get_mut(&room_name.clone())
             .expect("ERR_NOT_FOUND_ROOM");
 
@@ -233,7 +287,7 @@ impl HotelBooking {
         }
 
         // 予約が入った日付, guestを登録
-        room.booked_info.insert(checkin_date, account_id);
+        room.booked_info.insert(check_in_date, account_id);
 
         // トークンを送信
         Promise::new(owner_id.clone()).transfer(deposit);
@@ -242,23 +296,36 @@ impl HotelBooking {
 }
 
 impl HotelBooking {
-    pub fn create_json_room(&self, room: &Room) -> JsonRoom {
-        let mut booked_date = vec![];
-        for (date, _) in room.booked_info.clone() {
-            booked_date.push(date);
+    pub fn create_resigtered_room(&self, room: &Room) -> ResigteredRoom {
+        let use_time = UseTime {
+            check_in: room.use_time.check_in.clone(),
+            check_out: room.use_time.check_out.clone(),
+        };
+
+        // statusを複製
+        let status: UsageStatus;
+        match room.status {
+            UsageStatus::Available => status = UsageStatus::Available,
+            UsageStatus::Stay { ref check_in_date } => {
+                status = UsageStatus::Stay {
+                    check_in_date: check_in_date.clone(),
+                }
+            }
         }
 
-        let json_room = JsonRoom {
+        let resigtered_room = ResigteredRoom {
             id: room.id.clone(),
             name: room.name.clone(),
+            use_time: use_time,
             image: room.image.clone(),
             description: room.description.clone(),
             location: room.location.clone(),
             price: room.price,
+            status: status,
             owner_id: room.owner_id.clone(),
-            booked_date: booked_date,
+            // booked_date: booked_date,
         };
-        json_room
+        resigtered_room
     }
 }
 
@@ -297,6 +364,8 @@ mod tests {
         let mut contract = HotelBooking::default();
         let is_success = contract.set_room(
             "0".to_string(),
+            "14:00".to_string(),
+            "10:00".to_string(),
             "JAPAN_room".to_string(),
             "test.img".to_string(),
             "This is JAPAN room".to_string(),
@@ -321,6 +390,8 @@ mod tests {
         let _ = contract.set_room(
             "0".to_string(),
             "JAPAN_room".to_string(),
+            "14:00".to_string(),
+            "10:00".to_string(),
             "test.img".to_string(),
             "This is JAPAN room".to_string(),
             "Japan".to_string(),
@@ -329,6 +400,8 @@ mod tests {
         let _ = contract.set_room(
             "1".to_string(),
             "USA_room".to_string(),
+            "14:00".to_string(),
+            "10:00".to_string(),
             "test2.img".to_string(),
             "This is USA room".to_string(),
             "USA".to_string(),
@@ -372,6 +445,8 @@ mod tests {
         let _ = contract.set_room(
             "0".to_string(),
             room_name.clone(),
+            "14:00".to_string(),
+            "10:00".to_string(),
             "test.img".to_string(),
             "This is JAPAN room".to_string(),
             "Japan".to_string(),
@@ -380,6 +455,8 @@ mod tests {
         let _ = contract.set_room(
             "1".to_string(),
             "USA_room".to_string(),
+            "14:00".to_string(),
+            "10:00".to_string(),
             "test2.img".to_string(),
             "This is USA room".to_string(),
             "USA".to_string(),
@@ -390,39 +467,51 @@ mod tests {
 
         // Search check
         testing_env!(context.signer_account_id(accounts(2)).build());
-        let checkin_date: String = "2222-01-01".to_string();
-        let available_rooms = contract.get_available_rooms(checkin_date.clone());
+        let check_in_date: String = "2222-01-01".to_string();
+        let available_rooms = contract.get_available_rooms(check_in_date.clone());
         println!("\n\nAVAILABLE_ROOM: {:?}\n\n", available_rooms);
         assert_eq!(available_rooms.len(), 2);
 
-        // let available_room = contract.get_json_room(hotel_owner_id.clone(), room_name.clone());
+        // let available_room = contract.get_resigtered_room(hotel_owner_id.clone(), room_name.clone());
         // assert_eq!(available_room.status, RoomStatus::Available);
 
         let is_success = contract.book_room(
             hotel_owner_id.clone(),
             room_name.clone(),
-            checkin_date.clone(),
+            check_in_date.clone(),
         );
         assert_eq!(is_success, true);
-        // let booking_room = contract.get_json_room(hotel_owner_id.clone(), room_name);
+        // let booking_room = contract.get_resigtered_room(hotel_owner_id.clone(), room_name);
         // assert_eq!(
         //     booking_room.status,
         //     RoomStatus::Booked {
         //         guest: hotel_owner_id,
-        //         checkin_date: "2022-08-20".to_string()
+        //         check_in_date: "2022-08-20".to_string()
         //     }
         // );
 
         let booked_rooms = contract.get_booked_rooms(hotel_owner_id.clone());
         println!("{:?}", booked_rooms);
         assert_eq!(booked_rooms.len(), 1);
-        assert_eq!(booked_rooms[0].checkin_date, checkin_date);
+        assert_eq!(booked_rooms[0].check_in_date, check_in_date);
         println!(
             "guest{:?} signer{:?}",
             booked_rooms[0].guest_id,
             env::signer_account_id()
         );
         assert_eq!(booked_rooms[0].guest_id, accounts(2));
+
+        //TEST
+        // ホテルのオーナーにアカウントを切り替え
+        testing_env!(context.signer_account_id(accounts(1)).build());
+        contract.change_status_to_stay(room_name.clone(), check_in_date.clone());
+        let rooms = contract.get_hotel_rooms(hotel_owner_id.clone());
+        println!("\n\nCHANGE STATUS {:?}\n\n", rooms);
+        // TODO: delete
+
+        let boolean = contract.is_available(hotel_owner_id.clone(), room_name.clone());
+        assert_eq!(boolean, false);
+        //TEST
     }
 
     #[test]
@@ -435,6 +524,8 @@ mod tests {
         let _ = contract.set_room(
             "0".to_string(),
             "JAPAN_room".to_string(),
+            "14:00".to_string(),
+            "10:00".to_string(),
             "test.img".to_string(),
             "This is JAPAN room".to_string(),
             "Japan".to_string(),
@@ -443,6 +534,8 @@ mod tests {
         let is_success = contract.set_room(
             "1".to_string(),
             "JAPAN_room".to_string(),
+            "14:00".to_string(),
+            "10:00".to_string(),
             "test.img".to_string(),
             "This is JAPAN room".to_string(),
             "Japan".to_string(),

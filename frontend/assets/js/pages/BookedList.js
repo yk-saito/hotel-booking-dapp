@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Button, Table } from "react-bootstrap";
-import { get_booked_rooms, delete_booked_info } from "../near/utils";
+import {
+  get_booked_rooms,
+  is_available,
+  change_status_to_available,
+  change_status_to_stay,
+} from "../near/utils";
 
 const BookedList = () => {
   const [bookedRooms, setBookedRooms] = useState([]);
@@ -13,10 +18,24 @@ const BookedList = () => {
     }
   };
 
-  const triggerToAvailable = async (room_name, checkin_date) => {
+  const triggerCheckIn = async (room_name, check_in_date) => {
+    let isAvailable = await is_available(window.accountId, room_name);
+    if (isAvailable == false) {
+      alert('Error "Someone already stay."');
+      return;
+    }
     try {
-      console.log("in BookedList.js: ", room_name, checkin_date);
-      delete_booked_info(room_name, checkin_date).then((resp) => {
+      change_status_to_stay(room_name, check_in_date).then((resp) => {
+        getBookedRooms();
+      });
+    } catch (error) {
+      console.log({ error });
+    }
+  };
+  const triggerCheckOut = async (room_name, check_in_date) => {
+    try {
+      console.log("in BookedList.js: ", room_name, check_in_date);
+      change_status_to_available(room_name, check_in_date).then((resp) => {
         getBookedRooms();
       });
     } catch (error) {
@@ -52,22 +71,35 @@ const BookedList = () => {
           </tr>
         </thead>
         {bookedRooms.map((_room) => (
-          <tbody key={`${_room.name}${_room.checkin_date}`}>
+          <tbody key={`${_room.name}${_room.check_in_date}`}>
             <tr>
               <th scope='row'>{_room.id}</th>
               <td>{_room.name}</td>
-              <td>{_room.checkin_date}</td>
+              <td>{_room.check_in_date}</td>
               <td>{_room.guest_id}</td>
               <td>
-                <Button
-                  variant='danger'
-                  size='sm'
-                  onClick={(e) =>
-                    triggerToAvailable(_room.name, _room.checkin_date, e)
-                  }
-                >
-                  Check Out
-                </Button>
+                {_room.status === "Available" && (
+                  <Button
+                    variant='success'
+                    size='sm'
+                    onClick={(e) =>
+                      triggerCheckIn(_room.name, _room.check_in_date, e)
+                    }
+                  >
+                    Check In
+                  </Button>
+                )}
+                {_room.status !== "Available" && (
+                  <Button
+                    variant='danger'
+                    size='sm'
+                    onClick={(e) =>
+                      triggerCheckOut(_room.name, _room.check_in_date, e)
+                    }
+                  >
+                    Check Out
+                  </Button>
+                )}
               </td>
             </tr>
           </tbody>

@@ -10,6 +10,7 @@ const Room = ({ room, booking }) => {
   const {
     id,
     room_name,
+    use_time,
     description,
     location,
     image,
@@ -29,14 +30,20 @@ const Room = ({ room, booking }) => {
       <Col xs={2}>
         <Image src={image} alt={room_name} width='300' fluid />
       </Col>
-      <Col xs={7}>
+      <Col xs={5}>
         <h3>HOTEL NAME</h3>
         <h4>{room_name}</h4>
         <p>{description}</p>
         <h5>{location}</h5>
-        <p>1 room / 1 bed / 1 night</p>
       </Col>
       <Col xs={2}>
+        <p>check in</p>
+        <h6>{use_time.check_in}</h6>
+        <p>check out</p>
+        <h6>{use_time.check_out}</h6>
+      </Col>
+      <Col xs={2}>
+        <p>1 bed / 1 night</p>
         <Button
           variant='outline-dark'
           disabled={!window.accountId}

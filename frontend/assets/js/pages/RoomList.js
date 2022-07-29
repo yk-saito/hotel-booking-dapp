@@ -68,20 +68,46 @@ const RoomList = () => {
             <th scope='col'>Description</th>
             <th scope='col'>Location</th>
             <th scope='col'>Price per night</th>
+            <th scope='col'>Use Time</th>
+            <th scope='col'>Status</th>
           </tr>
         </thead>
         {rooms.map((_room) => (
           <tbody key={`${_room.id}`}>
-            <tr>
-              <th scope='row'>{_room.id}</th>
-              <td>{_room.name}</td>
-              <td>
-                <img src={_room.image} width='100' />
-              </td>
-              <td>{_room.description}</td>
-              <td>{_room.location}</td>
-              <td>{utils.format.formatNearAmount(_room.price)} NEAR</td>
-            </tr>
+            {_room.status === "Available" && (
+              <tr>
+                <th scope='row'>{_room.id}</th>
+                <td>{_room.name}</td>
+                <td>
+                  <img src={_room.image} width='100' />
+                </td>
+                <td>{_room.description}</td>
+                <td>{_room.location}</td>
+                <td>{utils.format.formatNearAmount(_room.price)} NEAR</td>
+                <td>
+                  {_room.use_time.check_in} - {_room.use_time.check_out}
+                </td>
+
+                <td>{_room.status}</td>
+              </tr>
+            )}
+            {_room.status !== "Available" && (
+              <tr style={{ backgroundColor: "#FFC0CB" }}>
+                <th scope='row'>{_room.id}</th>
+                <td>{_room.name}</td>
+                <td>
+                  <img src={_room.image} width='100' />
+                </td>
+                <td>{_room.description}</td>
+                <td>{_room.location}</td>
+                <td>{utils.format.formatNearAmount(_room.price)} NEAR</td>
+                <td>
+                  {_room.use_time.check_in} - {_room.use_time.check_out}
+                </td>
+
+                <td>Stay</td>
+              </tr>
+            )}
           </tbody>
         ))}
       </Table>

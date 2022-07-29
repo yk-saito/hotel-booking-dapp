@@ -30,7 +30,7 @@ const Room = ({ room, booking }) => {
         <Image src={image} alt={room_name} width='300' fluid />
       </Col>
       <Col xs={5}>
-        <h3>HOTEL NAME</h3>
+        <h4>{owner_id}</h4>
         <h4>{room_name}</h4>
         <p>{description}</p>
         <h5>{location}</h5>
